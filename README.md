@@ -302,3 +302,5 @@ Todas as mutações são feitas via Server Actions:
 ## 📄 Licença
 
 MIT
+#   Q u e s t L o g  
+ 
