@@ -59,7 +59,7 @@ export default function XPChart({ data }: { data: DayXP[] }) {
               const d = data[props.index];
               return (
                 <text
-                  x={props.x} y={props.y + 12}
+                  x={props.x} y={Number(props.y) + 12}
                   textAnchor="middle"
                   fill={d?.isToday ? "#f59e0b" : "#333"}
                   fontSize={10}
