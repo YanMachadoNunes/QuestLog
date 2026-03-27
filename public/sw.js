@@ -1,4 +1,4 @@
-const CACHE = "questlog-v1";
+const CACHE = "questlog-v2";
 const PRECACHE = ["/", "/quests", "/manifest.json"];
 
 self.addEventListener("install", (e) => {
