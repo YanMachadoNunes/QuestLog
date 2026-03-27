@@ -281,15 +281,15 @@ export default function QuestCard({ quest }: { quest: Quest }) {
         <Link
           href={`/quests/${quest.id}/edit`}
           style={{
-            padding: 6, borderRadius: 6, border: "none",
-            background: "transparent", color: "#2a2a2a",
-            flexShrink: 0, transition: "color 0.15s",
+            padding: 8, borderRadius: 7, border: "1px solid #222",
+            background: "#0d0d0d", color: "#555",
+            flexShrink: 0, transition: "color 0.15s, border-color 0.15s",
             display: "flex", alignItems: "center",
           }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#888")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#2a2a2a")}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#aaa"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "#333"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#555"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "#222"; }}
         >
-          <Pencil size={12} />
+          <Pencil size={14} />
         </Link>
 
         {/* Delete */}
@@ -297,14 +297,14 @@ export default function QuestCard({ quest }: { quest: Quest }) {
           onClick={handleDelete}
           disabled={pending}
           style={{
-            padding: 6, borderRadius: 6, border: "none",
-            background: "transparent", color: "#2a2a2a",
-            cursor: "pointer", flexShrink: 0, transition: "color 0.15s",
+            padding: 8, borderRadius: 7, border: "1px solid #222",
+            background: "#0d0d0d", color: "#555",
+            cursor: "pointer", flexShrink: 0, transition: "color 0.15s, border-color 0.15s",
           }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#ef4444")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#2a2a2a")}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#ef4444"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(239,68,68,0.3)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#555"; (e.currentTarget as HTMLButtonElement).style.borderColor = "#222"; }}
         >
-          <Trash2 size={13} />
+          <Trash2 size={14} />
         </button>
       </div>
     </div>
