@@ -168,6 +168,77 @@ html, body {
   to   { opacity: 0; transform: translateX(20px) scale(0.95); }
 }
 
+/* ─── RESPONSIVE ────────────────────────────────────────────────── */
+
+.shell-main {
+  padding: 40px 48px 120px;
+  min-height: 100vh;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.menu-toggle {
+  position: fixed;
+  bottom: 40px;
+  left: 40px;
+  z-index: 200;
+}
+
+.mute-btn {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  z-index: 200;
+}
+
+@media (max-width: 640px) {
+  .shell-main {
+    padding: 24px 16px 100px;
+  }
+
+  .menu-toggle {
+    bottom: 20px;
+    left: 16px;
+  }
+
+  .mute-btn {
+    bottom: 20px;
+    right: 16px;
+  }
+}
+
+/* ─── QUEST CARD RESPONSIVE ─────────────────────────────────────── */
+
+.quest-card-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.quest-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .quest-card-row {
+    flex-wrap: wrap;
+  }
+
+  .quest-card-actions {
+    width: 100%;
+    padding-top: 10px;
+    border-top: 1px solid #181818;
+    margin-top: 4px;
+  }
+
+  .quest-card-actions-push {
+    margin-left: auto;
+  }
+}
+
 /* ─── UTILITY CLASSES ────────────────────────────────────────────── */
 
 .animate-float-in {

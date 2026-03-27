@@ -57,7 +57,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{ minHeight: "100vh" }}>
-      <main style={{ padding: "40px 48px 120px", minHeight: "100vh", maxWidth: 1280, margin: "0 auto" }}>
+      <main className="shell-main">
         {children}
       </main>
 
@@ -77,7 +77,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       {/* Menu root — fixed bottom-left */}
       <div
         ref={menuRef}
-        style={{ position: "fixed", bottom: 40, left: 40, zIndex: 200 }}
+        className="menu-toggle"
       >
         {/* Vertical spine */}
         {open && (
@@ -292,11 +292,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <button
         onClick={handleToggleMute}
         title={muted ? "Ativar sons" : "Silenciar"}
+        className="mute-btn"
         style={{
-          position: "fixed",
-          bottom: 40,
-          right: 40,
-          zIndex: 200,
           width: 40,
           height: 40,
           borderRadius: "50%",
