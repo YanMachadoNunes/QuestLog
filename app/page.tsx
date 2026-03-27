@@ -4,12 +4,13 @@ import {
   CHAR_CLASSES, ATTR_CLASSES, getClass, isMilestoneLevel,
 } from "@/lib/xp";
 import AttributeCard from "@/components/AttributeCard";
+import QuestCard from "@/components/QuestCard";
 import StatBar from "@/components/StatBar";
 import XPChart, { type DayXP } from "@/components/XPChart";
 import ActivityCalendar, { type DayActivity } from "@/components/ActivityCalendar";
 import ResetModal from "@/components/ResetModal";
 import { autoFailDailies, resetDailies, checkRest } from "@/lib/actions";
-import { RefreshCw, Heart, Zap, Crown, Flame, Plus } from "lucide-react";
+import { RefreshCw, Heart, Crown, Flame, Plus } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -73,7 +74,7 @@ export default async function Dashboard() {
   const [character, attributes, quests, recentLogs, weeklyXP, activity] = await Promise.all([
     prisma.character.findFirst(),
     prisma.attribute.findMany(),
-    prisma.quest.findMany({ where: { status: "ACTIVE" }, take: 20 }),
+    prisma.quest.findMany({ where: { status: "ACTIVE" }, include: { subTasks: { orderBy: { order: "asc" } } }, take: 20 }),
     prisma.questLog.findMany({ include: { quest: true }, orderBy: { createdAt: "desc" }, take: 8 }),
     getWeeklyXP(),
     getActivityData(),
@@ -243,19 +244,37 @@ export default async function Dashboard() {
         </div>
       </Section>
 
-      {/* ── Dailies ativas ───────────────────────────── */}
+      {/* ── Quests ativas ────────────────────────────── */}
       {dailies.length > 0 && (
         <Section label="Dailies ativas">
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {dailies.map((q, i) => (
               <div key={q.id} className="animate-slide-right" style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "#111", border: "1px solid #181818", borderRadius: 8 }}>
-                  <span style={{ fontSize: 10, fontWeight: 800, color: ATTR_COLORS[q.attribute], minWidth: 28, letterSpacing: 1 }}>{q.attribute}</span>
-                  <span style={{ flex: 1, fontSize: 13, color: "#c0c0c0" }}>{q.title}</span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "#f59e0b" }}>
-                    <Zap size={10} /> +{q.xpReward}
-                  </span>
-                </div>
+                <QuestCard quest={q} />
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {epics.length > 0 && (
+        <Section label="Epic Quests ativas">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {epics.map((q, i) => (
+              <div key={q.id} className="animate-slide-right" style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}>
+                <QuestCard quest={q} />
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {bosses.length > 0 && (
+        <Section label="Boss Quests ativas">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {bosses.map((q, i) => (
+              <div key={q.id} className="animate-slide-right" style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}>
+                <QuestCard quest={q} />
               </div>
             ))}
           </div>
