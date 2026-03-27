@@ -1,0 +1,181 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0a0a0a;
+  --color-card: #111111;
+  --color-border: #1f1f1f;
+  --color-text: #e5e5e5;
+  --color-muted: #666666;
+  --color-amber: #f59e0b;
+  --color-green: #22c55e;
+  --color-red: #ef4444;
+  --color-blue: #60a5fa;
+  --color-orange: #fb923c;
+  --color-cyan: #22d3ee;
+  --color-purple: #c084fc;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: #0a0a0a;
+  color: #e5e5e5;
+  font-family: var(--font-mono);
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+
+/* ─── KEYFRAMES ─────────────────────────────────────────────────── */
+
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-right {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(245,158,11,0.2); }
+  50%       { box-shadow: 0 0 22px rgba(245,158,11,0.5), 0 0 44px rgba(245,158,11,0.12); }
+}
+
+@keyframes ring-expand {
+  0%   { transform: scale(1);   opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes hp-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-5px); }
+  40%       { transform: translateX(5px); }
+  60%       { transform: translateX(-3px); }
+  80%       { transform: translateX(3px); }
+}
+
+@keyframes levelup-card {
+  0%   { opacity: 0; transform: scale(0.55) translateY(40px); }
+  65%  { transform: scale(1.03) translateY(-3px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes star-pop {
+  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+  65%  { transform: scale(1.15) rotate(6deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes number-bounce {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.45); }
+  65%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+@keyframes confetti-1 {
+  0%   { transform: translateY(0) rotate(0deg);    opacity: 1; }
+  100% { transform: translateY(160px) rotate(600deg); opacity: 0; }
+}
+@keyframes confetti-2 {
+  0%   { transform: translateY(0) rotate(45deg);   opacity: 1; }
+  100% { transform: translateY(140px) rotate(-500deg); opacity: 0; }
+}
+@keyframes confetti-3 {
+  0%   { transform: translateY(0) rotate(90deg);   opacity: 1; }
+  100% { transform: translateY(180px) rotate(420deg); opacity: 0; }
+}
+
+@keyframes progress-bar {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+
+@keyframes tooltip-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes dash-draw {
+  from { stroke-dashoffset: 400; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes spine-grow {
+  from { transform: translateX(-0.5px) scaleY(0); }
+  to   { transform: translateX(-0.5px) scaleY(1); }
+}
+
+/* ─── QUEST CARD ANIMATIONS ──────────────────────────────────────── */
+
+@keyframes card-ok {
+  0%   { transform: scale(1);    box-shadow: none; }
+  25%  { transform: scale(1.02); box-shadow: 0 0 0 2px rgba(34,197,94,0.5), 0 0 28px rgba(34,197,94,0.25); }
+  60%  { transform: scale(0.98); box-shadow: 0 0 0 1px rgba(34,197,94,0.3); }
+  100% { transform: scale(1);    box-shadow: none; }
+}
+
+@keyframes card-fail {
+  0%   { transform: translateX(0);  box-shadow: none; }
+  15%  { transform: translateX(-7px); box-shadow: 0 0 0 2px rgba(239,68,68,0.5), 0 0 24px rgba(239,68,68,0.25); }
+  35%  { transform: translateX(6px); }
+  55%  { transform: translateX(-4px); }
+  75%  { transform: translateX(3px); }
+  100% { transform: translateX(0);  box-shadow: none; }
+}
+
+@keyframes btn-ok {
+  0%   { transform: scale(1);    box-shadow: none; }
+  40%  { transform: scale(1.12); box-shadow: 0 0 16px rgba(34,197,94,0.5); }
+  100% { transform: scale(1);    box-shadow: none; }
+}
+
+@keyframes btn-fail {
+  0%   { transform: scale(1);    box-shadow: none; }
+  40%  { transform: scale(1.12); box-shadow: 0 0 16px rgba(239,68,68,0.5); }
+  100% { transform: scale(1);    box-shadow: none; }
+}
+
+@keyframes fade-overlay {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ─── DUE DATE + ACHIEVEMENT ANIMATIONS ─────────────────────────── */
+
+@keyframes urgent-pulse {
+  0%, 100% { border-color: rgba(245,158,11,0.35); box-shadow: none; }
+  50%       { border-color: rgba(245,158,11,0.75); box-shadow: 0 0 10px rgba(245,158,11,0.18); }
+}
+
+@keyframes achievement-in {
+  from { opacity: 0; transform: translateX(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateX(0)    scale(1); }
+}
+
+@keyframes achievement-out {
+  from { opacity: 1; transform: translateX(0)    scale(1); }
+  to   { opacity: 0; transform: translateX(20px) scale(0.95); }
+}
+
+/* ─── UTILITY CLASSES ────────────────────────────────────────────── */
+
+.animate-float-in {
+  animation: float-in 0.4s ease forwards;
+}
+.animate-scale-in {
+  animation: scale-in 0.35s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+}
+.animate-slide-right {
+  animation: slide-right 0.3s ease forwards;
+}

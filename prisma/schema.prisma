@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Character {
+  id             String    @id @default(cuid())
+  name           String    @default("Aventureiro")
+  hp             Int       @default(100)
+  maxHp          Int       @default(100)
+  streak         Int       @default(0)
+  lastActiveDate DateTime?
+  lastDailyReset DateTime?
+  lastRestAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Attribute {
+  id    String @id @default(cuid())
+  type  String @unique
+  xp    Int    @default(0)
+  level Int    @default(1)
+}
+
+model Quest {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  type        String     // DAILY, EPIC, BOSS
+  difficulty  String     @default("NORMAL") // EASY, NORMAL, HARD
+  attribute   String
+  xpReward    Int        @default(50)
+  status      String     @default("ACTIVE")
+  completedAt DateTime?
+  failedAt    DateTime?
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  logs        QuestLog[]
+  subTasks    SubTask[]
+}
+
+model SubTask {
+  id        String   @id @default(cuid())
+  questId   String
+  quest     Quest    @relation(fields: [questId], references: [id], onDelete: Cascade)
+  title     String
+  done      Boolean  @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model QuestLog {
+  id        String   @id @default(cuid())
+  questId   String
+  quest     Quest    @relation(fields: [questId], references: [id], onDelete: Cascade)
+  action    String
+  xpChange  Int      @default(0)
+  hpChange  Int      @default(0)
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model Achievement {
+  id         String   @id @default(cuid())
+  key        String   @unique
+  unlockedAt DateTime @default(now())
+}
