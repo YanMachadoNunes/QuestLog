@@ -4,158 +4,110 @@
 
 ---
 
-## 🎮 Visão Geral
+## Visão Geral
 
-QuestLog é um sistema de gestão de tarefas gamificado que aplica mecânicas de RPG (XP, níveis, classes, conquistas) à produtividade pessoal. Completar tarefas concede experiência (XP), e ao subir de nível você desbloqueia novas classes e habilidades.
+QuestLog é um sistema de gestão de tarefas gamificado que aplica mecânicas de RPG (XP, níveis, ranks, classes, conquistas) à produtividade pessoal. Completar tarefas concede experiência (XP), e ao subir de nível você evolui de classe e sobe no ranking global.
 
-### Características Principais
+### Características
 
-- **Sistema de Atributos** — 5 habilidades (Força, Inteligência, Carisma, Destreza, Sabedoria)
-- **Classes por Nível** — Evolução visual do personagem de Recruta a Lendário
-- **Sistema de HP** — Energia do personagem vinculada ao desempenho
-- **Streak System** — Contador de dias consecutivos cumprindo missões
-- **Missões Diárias (Dailies)** — Tarefas que resetam diariamente com punição de HP
-- **Epic Quests** — Missões de longo prazo
-- **Boss Quests** — Desafios difíceis com maior recompensa e risco
-- **Sistema de Conquistas** — Medalhas por marcos alcançados
+- **Sistema de Atributos** — 5 habilidades (FRC, INT, CAR, DES, SAB)
+- **Ranks Globais** — De D até Ascendente, baseado na média dos atributos
+- **Classes por Atributo** — 6 tiers a cada 20 níveis, com título de ascensão no nível 100
+- **Sistema de HP** — Energia vinculada ao desempenho e descanso
+- **Streak System** — Contador de dias consecutivos completando missões
+- **Dailies** — Tarefas que resetam diariamente com punição de HP
+- **Epic Quests** — Missões de longo prazo com subtarefas e prazo
+- **Boss Quests** — Desafios com 3x XP e -30 HP ao falhar
+- **Conquistas** — Medalhas por marcos alcançados
+- **PWA** — Instalável como app nativo no celular e desktop
 
 ---
 
-## 🛠️ Stack Tecnológica
+## Stack
 
 | Tecnologia | Uso |
 |------------|-----|
 | **Next.js 15** | Framework React com App Router |
 | **TypeScript** | Tipagem estática |
-| **Prisma** | ORM para banco de dados |
-| **SQLite** | Banco de dados local |
+| **Prisma** | ORM |
+| **PostgreSQL** | Banco de dados (SQLite em dev) |
 | **TailwindCSS 4** | Estilização |
 | **Recharts** | Gráficos de XP |
-| **Lucide React** | Ícones |
 
 ---
 
-## 📁 Estrutura do Projeto
+## Tipos de Missão
 
-```
-questlog/
-├── app/
-│   ├── page.tsx              # Dashboard principal
-│   ├── quests/
-│   │   ├── page.tsx         # Lista de missões
-│   │   ├── new/page.tsx     # Criar nova missão
-│   │   └── [id]/edit/page.tsx  # Editar missão
-│   ├── attributes/page.tsx   # Página de atributos
-│   ├── log/page.tsx         # Log de atividades
-│   └── api/
-│       └── quests/[id]/route.ts  # API REST
-├── components/
-│   ├── QuestCard.tsx        # Card de missão
-│   ├── FilterBar.tsx        # Filtro de missões
-│   ├── AttributeCard.tsx    # Card de atributo
-│   ├── StatBar.tsx         # Barra de progresso (HP/XP)
-│   ├── XPChart.tsx         # Gráfico semanal de XP
-│   ├── ActivityCalendar.tsx # Calendário de atividade
-│   └── ResetModal.tsx       # Modal de reset
-├── lib/
-│   ├── prisma.ts           # Cliente Prisma
-│   ├── actions.ts          # Server Actions (lógica de negócio)
-│   └── xp.ts               # Cálculos de XP e classes
-└── prisma/
-    ├── schema.prisma        # Schema do banco
-    └── seed.ts             # Dados iniciais
-```
-
----
-
-## 🎯 Tipos de Missão
-
-| Tipo | Descrição | Recompensa XP | Penalidade HP |
-|------|-----------|---------------|---------------|
-| **DAILY** | Tarefas diárias, resetam às 24h | Base | -10 HP (auto-fail) |
-| **EPIC** | Missões de longo prazo | Base | Nenhuma |
-| **BOSS** | Desafios difíceis | 3x base | -30 HP (fail) |
+| Tipo | XP | Penalidade HP |
+|------|----|---------------|
+| **DAILY** | Base | -10 HP (auto-fail à meia-noite) |
+| **EPIC** | Base | Nenhuma |
+| **BOSS** | 3× base | -30 HP ao falhar |
 
 ### Dificuldades
 
-| Dificuldade | Multiplicador XP |
-|-------------|------------------|
-| **EASY** | 0.5x |
-| **NORMAL** | 1x |
-| **HARD** | 2x |
+| Dificuldade | Multiplicador |
+|-------------|---------------|
+| EASY | 0.5× |
+| NORMAL | 1× |
+| HARD | 2× |
 
 ---
 
-## 📊 Sistema de Atributos
+## Sistema de Ranks e Classes
 
-Cada atributo representa uma área da vida:
+### Ranks Globais (média dos atributos)
 
-| Atributo | Cor | Descrição |
-|----------|-----|-----------|
-| **FRC** (Força) | 🔴 Vermelho | Exercício, saúde, disciplina física |
-| **INT** (Inteligência) | 🔵 Azul | Estudo, código, arquitetura |
-| **CAR** (Carisma) | 🟠 Laranja | Vendas, marketing, liderança |
-| **DES** (Destreza) | 🔵 Ciano | Piano, técnica, projetos criativos |
-| **SAB** (Sabedoria) | 🟣 Roxo | Finanças, organização |
+| Rank | Nível mínimo | Cor |
+|------|--------------|-----|
+| D | 0 | Cinza |
+| C | 5 | Azul |
+| B | 10 | Verde |
+| A | 15 | Roxo |
+| S | 20 | Dourado |
+| Nacional | 30 | Laranja |
+| Monarca | 50 | Rosa |
+| Ascendente | 100 | Prismático |
 
-### Progressão por Nível
+### Classes por Atributo (a cada 20 níveis)
+
+```
+FRC: Sedentário → Saudável → Atlético → Olímpico → Militar → [Imortal]
+INT: Júnior → Pleno → Sênior → Arquiteto → Gênio → [Demiurgo]
+CAR: Tímido → Vendedor → Networker → Influencer → Líder → [Ícone]
+DES: Amador → Iniciante → Intermediário → Avançado → Virtuoso → [Criador]
+SAB: Ingênuo → Prudente → Experto → Sábio → Iluminado → [Transcendental]
+```
+
+> Títulos entre `[ ]` são os títulos de ascensão, desbloqueados ao atingir nível 100.
+
+### Progressão de XP
 
 - Cada nível requer `nível × 100` XP
-- Exemplo: Lv.2 = 100 XP, Lv.3 = 200 XP adicional, etc.
-
-### Classes de Atributos
-
-Cada atributo evolui visualmente com classes:
-
-```
-FRC: Sedentário → Atleta → Lutador → Guerreiro → Titã
-INT: Estudante → Dev → Arquiteto → Hacker → Gênio
-CAR: Tímido → Vendedor → Networker → Influencer → Carismático
-DES: Amador → Praticante → Músico → Virtuoso → Maestro
-SAB: Ingênuo → Prudente → Estrategista → Sábio → Iluminado
-```
+- Milestones em: 20, 40, 60, 80, 100
 
 ---
 
-## 👤 Sistema de Personagem
-
-### Nível do Personagem
-
-O nível do personagem é a **média dos níveis dos atributos**.
-
-### Classes do Personagem
-
-| Nível | Classe | Cor |
-|-------|--------|-----|
-| 1-4 | Recruta | Cinza |
-| 5-9 | Aprendiz | Azul |
-| 10-14 | Aventureiro | Verde |
-| 15-19 | Herói | Roxo |
-| 20-29 | Campeão | Dourado |
-| 30-49 | Lendário | Laranja |
-| 50+ | Imortal | Rosa |
+## Sistema de Personagem
 
 ### HP e Recuperação
 
 - **HP máximo**: 100
-- **Regeneração por missão**: +5 HP
-- **Recuperação por descanso**:
+- **Regeneração por missão completa**: +5 HP
+- **Descanso**:
   - 8h+ inativo: +15 HP
   - 16h+ inativo: +25 HP
   - 24h+ inativo: +35 HP
 
-### Sistema de Streak
+### Streak
 
-- Contador de dias consecutivos completando dailies
-- Reseta ao falhar uma daily ou não completar nenhuma
-- Cores especiais no dashboard:
-  - 🔴 14+ dias
-  - 🟠 7-13 dias
-  - 🟡 3-6 dias
+- Incrementa ao completar qualquer missão no dia
+- Reseta se nenhuma daily for completada
+- Cores: 3+ dias (amarelo), 7+ dias (laranja), 14+ dias (vermelho)
 
 ---
 
-## 🏆 Sistema de Conquistas
+## Conquistas
 
 | Chave | Requisito |
 |-------|-----------|
@@ -170,137 +122,44 @@ O nível do personagem é a **média dos níveis dos atributos**.
 
 ---
 
-## 🚀 Como Executar
-
-### 1. Instalar Dependências
+## Como Executar
 
 ```bash
 npm install
-```
 
-### 2. Configurar Banco de Dados
-
-```bash
-# Gerar cliente Prisma
+# Configurar banco
 npx prisma generate
-
-# Criar tabelas no banco
 npx prisma db push
 
-# (Opcional) Popular com dados iniciais
+# (Opcional) Seed
 npm run seed
-```
 
-### 3. Iniciar Servidor
-
-```bash
+# Dev
 npm run dev
 ```
 
-Acesse http://localhost:3000
-
----
-
-## 📋 Scripts Disponíveis
-
-| Comando | Descrição |
-|---------|-----------|
-| `npm run dev` | Iniciar em modo desenvolvimento (Turbopack) |
-| `npm run build` | Build de produção |
-| `npm run start` | Iniciar servidor de produção |
-| `npm run seed` | Popular banco com dados iniciais |
-| `npm run db:push` | Sincronizar schema com banco |
-| `npm run db:studio` | Abrir Prisma Studio (GUI do banco) |
-
----
-
-## 🔧 Variáveis de Ambiente
+### Variáveis de Ambiente
 
 ```env
+# Dev (SQLite)
 DATABASE_URL="file:./prisma/dev.db"
+
+# Produção (PostgreSQL)
+DATABASE_URL="postgresql://..."
+DIRECT_URL="postgresql://..."
 ```
 
-O banco SQLite é criado automaticamente em `prisma/dev.db`.
-
 ---
 
-## 🎨 Design System
+## PWA
 
-### Cores por Tema
-
-| Cor | Uso | Hex |
-|-----|-----|-----|
-| **Background** | Fundo principal | `#0a0a0a` |
-| **Card** | Cartões de missão | `#111111` |
-| **Border** | Bordas | `#1c1c1c` |
-| **Text Primary** | Texto principal | `#e5e5e5` |
-| **Text Secondary** | Texto secundário | `#555555` |
-| **XP** | Experiência | `#f59e0b` |
-| **HP** | Vida | `#22c55e` |
-| **Danger** | Falha/Penalidade | `#ef4444` |
-
-### Animações
-
-- `animate-float-in`: Fade in com slide para cima
-- `animate-slide-right`: Slide da direita
-- `glow-pulse`: Efeito de brilho pulsante
-
----
-
-## 📱 PWA (Progressive Web App)
-
-O projeto inclui suporte a PWA:
+Instalável como app nativo via Chrome (Android/Desktop) ou Safari (iOS).
 
 - `public/manifest.json` — Metadados do app
-- `public/sw.js` — Service Worker para offline
-
-### Instalação
-
-1. Abrir no Chrome/Edge
-2. Clicar em "Instalar" no ícone de app
-3. Funciona offline após primeira visita
+- `public/sw.js` — Service Worker com cache offline
 
 ---
 
-## 🔄 Fluxo de Dados
-
-```
-┌─────────────┐     Server Actions      ┌─────────────┐
-│   UI/React  │ ──────────────────────→ │   Prisma    │
-│  (Client)   │ ←────────────────────── │   SQLite    │
-└─────────────┘    Revalidate Path     └─────────────┘
-```
-
-### Server Actions (lib/actions.ts)
-
-Todas as mutações são feitas via Server Actions:
-
-- `completeQuest(questId)` — Completa missão, dá XP
-- `failQuest(questId)` — Falha missão, pierde HP
-- `createQuest(formData)` — Cria nova missão
-- `updateQuest(formData)` — Atualiza missão
-- `deleteQuest(questId)` — Remove missão
-- `autoFailDailies()` — Falha dailies não completadas
-- `resetDailies()` — Reseta dailies completadas
-- `checkRest()` — Aplica regeneração de HP
-
----
-
-## 🔮 Funcionalidades Futuras
-
-- [ ] Dashboard financeiro integrado
-- [ ] Integração com Calendário
-- [ ] Sistema de equipamentos/itens
-- [ ] Missões cooperativas (multiplayer)
-- [ ] backup/restore de dados
-- [ ] Temas claro/escuro
-- [ ] Notificações push
-- [ ] Sincronização entre dispositivos
-
----
-
-## 📄 Licença
+## Licença
 
 MIT
-#   Q u e s t L o g  
- 
