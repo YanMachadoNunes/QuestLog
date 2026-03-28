@@ -9,7 +9,7 @@ import {
   getLevelInfo, getCharacterLevel, getGlobalRank,
   getAttributeTitle, ATTR_COLORS, ATTR_LABELS,
 } from "@/lib/xp";
-import { Zap, Heart, Flame, Play, RotateCcw, Minus, ChevronUp, Shield, ShieldCheck, Star, Globe, Crown, Sparkles } from "lucide-react";
+import { Zap, Heart, Flame, Play, RotateCcw, Minus, ChevronUp, Shield, Award, Star, Globe, Crown, Sparkles } from "lucide-react";
 
 const ATTRS = ["FRC", "INT", "CAR", "DES", "SAB"];
 const LEVEL_PRESETS = [1, 5, 10, 20, 50, 100];
@@ -22,7 +22,7 @@ function RankBadge({ rank }: { rank: ReturnType<typeof getGlobalRank> }) {
     D:          <Minus size={11} />,
     C:          <ChevronUp size={11} />,
     B:          <Shield size={11} />,
-    A:          <ShieldCheck size={12} />,
+    A:          <Award size={12} />,
     S:          <Star size={13} fill="currentColor" />,
     Nacional:   <Globe size={13} />,
     Monarca:    <Crown size={14} fill="currentColor" />,

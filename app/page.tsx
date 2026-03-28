@@ -10,7 +10,7 @@ import XPChart, { type DayXP } from "@/components/XPChart";
 import ActivityCalendar, { type DayActivity } from "@/components/ActivityCalendar";
 import ResetModal from "@/components/ResetModal";
 import { autoFailDailies, resetDailies, checkRest } from "@/lib/actions";
-import { RefreshCw, Heart, Flame, Plus, Shield, ShieldCheck, Star, Globe, Crown, Sparkles, ChevronUp, Minus } from "lucide-react";
+import { RefreshCw, Heart, Flame, Plus, Shield, Award, Star, Globe, Crown, Sparkles, ChevronUp, Minus } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ const RANK_ICONS: Record<string, React.ReactNode> = {
   D:          <Minus size={11} />,
   C:          <ChevronUp size={11} />,
   B:          <Shield size={11} />,
-  A:          <ShieldCheck size={12} />,
+  A:          <Award size={12} />,
   S:          <Star size={13} fill="currentColor" />,
   Nacional:   <Globe size={13} />,
   Monarca:    <Crown size={14} fill="currentColor" />,
