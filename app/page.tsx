@@ -9,6 +9,7 @@ import StatBar from "@/components/StatBar";
 import XPChart, { type DayXP } from "@/components/XPChart";
 import ActivityCalendar, { type DayActivity } from "@/components/ActivityCalendar";
 import ResetModal from "@/components/ResetModal";
+import SleepButton from "@/components/SleepButton";
 import { autoFailDailies, resetDailies, checkRest } from "@/lib/actions";
 import { RefreshCw, Heart, Flame, Plus, Shield, Award, Star, Globe, Crown, Sparkles, ChevronUp, Minus } from "lucide-react";
 import Link from "next/link";
@@ -239,15 +240,15 @@ export default async function Dashboard() {
                 <div style={{ fontSize: 10, color: "#22c55e", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
                   💤 Descansou · +{restRegen} HP recuperado
                 </div>
-              ) : hpPct <= 25 ? (
-                <div style={{ fontSize: 10, color: "#ef4444", marginTop: 4 }}>⚠ HP crítico — descanse {hoursUntilRest}h para recuperar</div>
-              ) : isResting ? (
+              ) : character?.sleepAt ? (
                 <div style={{ fontSize: 10, color: "#22d3ee", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
-                  💤 Em descanso · +{nextRegen} HP ao voltar
+                  💤 Dormindo…
                 </div>
+              ) : hpPct <= 25 ? (
+                <div style={{ fontSize: 10, color: "#ef4444", marginTop: 4 }}>⚠ HP crítico — durma para recuperar</div>
               ) : hp < maxHp ? (
                 <div style={{ fontSize: 10, color: "#333", marginTop: 4 }}>
-                  Descanse {hoursUntilRest}h para recuperar +{nextRegen} HP
+                  Durma para recuperar HP
                 </div>
               ) : null}
             </div>
@@ -286,6 +287,7 @@ export default async function Dashboard() {
 
         {/* Actions */}
         <div style={{ display: "flex", gap: 8, marginTop: 16, paddingTop: 16, borderTop: "1px solid #161616", flexWrap: "wrap" }}>
+          <SleepButton sleepAt={character?.sleepAt ?? null} />
           <form action={resetDailies}>
             <button type="submit" style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 7, border: "1px solid #222", background: "#0d0d0d", color: "#555", fontSize: 11, cursor: "pointer", fontFamily: "var(--font-mono)" }}>
               <RefreshCw size={11} /> Reset Dailies

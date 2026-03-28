@@ -265,9 +265,11 @@ export async function resetDailies() {
 // ─── REST SYSTEM ──────────────────────────────────────────────────
 // Called during render (like autoFailDailies) — no revalidatePath.
 // Returns HP gained from rest (0 if no rest occurred).
+// Skipped if user is explicitly sleeping (sleepAt set) — wakeUp() handles that.
 export async function checkRest(): Promise<number> {
   const char = await prisma.character.findFirst({ where: { isTest: false } });
   if (!char || char.hp >= char.maxHp) return 0;
+  if (char.sleepAt) return 0; // sleeping explicitly — wait for wakeUp()
 
   const now = new Date();
   const lastActive = char.lastActiveDate ? new Date(char.lastActiveDate) : null;
@@ -288,6 +290,37 @@ export async function checkRest(): Promise<number> {
     where: { id: char.id },
     data: { hp: newHp, lastRestAt: now },
   });
+  return regen;
+}
+
+// ─── SLEEP SYSTEM ─────────────────────────────────────────────────
+export async function startSleep() {
+  const char = await prisma.character.findFirst({ where: { isTest: false } });
+  if (!char) return;
+  await prisma.character.update({
+    where: { id: char.id },
+    data: { sleepAt: new Date() },
+  });
+  revalidatePath("/");
+}
+
+export async function wakeUp() {
+  const char = await prisma.character.findFirst({ where: { isTest: false } });
+  if (!char || !char.sleepAt) return 0;
+
+  const sleptMs = Date.now() - new Date(char.sleepAt).getTime();
+  const sleptH  = sleptMs / 3_600_000;
+  const regen   = sleptH >= 24 ? 35 : sleptH >= 16 ? 25 : sleptH >= 8 ? 15 : 0;
+
+  await prisma.character.update({
+    where: { id: char.id },
+    data: {
+      hp:        Math.min(char.maxHp, char.hp + regen),
+      sleepAt:   null,
+      lastRestAt: regen > 0 ? new Date() : char.lastRestAt,
+    },
+  });
+  revalidatePath("/");
   return regen;
 }
 
