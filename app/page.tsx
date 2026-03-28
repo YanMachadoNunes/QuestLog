@@ -10,10 +10,21 @@ import XPChart, { type DayXP } from "@/components/XPChart";
 import ActivityCalendar, { type DayActivity } from "@/components/ActivityCalendar";
 import ResetModal from "@/components/ResetModal";
 import { autoFailDailies, resetDailies, checkRest } from "@/lib/actions";
-import { RefreshCw, Heart, Flame, Plus } from "lucide-react";
+import { RefreshCw, Heart, Flame, Plus, Shield, ShieldCheck, Star, Globe, Crown, Sparkles, ChevronUp, Minus } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
+
+const RANK_ICONS: Record<string, React.ReactNode> = {
+  D:          <Minus size={11} />,
+  C:          <ChevronUp size={11} />,
+  B:          <Shield size={11} />,
+  A:          <ShieldCheck size={12} />,
+  S:          <Star size={13} fill="currentColor" />,
+  Nacional:   <Globe size={13} />,
+  Monarca:    <Crown size={14} fill="currentColor" />,
+  Ascendente: <Sparkles size={14} />,
+};
 
 async function getWeeklyXP(): Promise<DayXP[]> {
   const days: Date[] = [];
@@ -138,26 +149,79 @@ export default async function Dashboard() {
               <span style={{ fontSize: 11, padding: "3px 9px", borderRadius: 6, background: `${charClass.color}10`, border: `1px solid ${charClass.color}28`, color: charClass.color, fontWeight: 700, letterSpacing: 1 }}>
                 Lv. {charLevel}
               </span>
-              <span style={{
-                fontSize: charClass.minLevel >= 20 ? 13 : 12,
-                padding: "4px 11px",
-                borderRadius: 6,
-                background: `${charClass.color}15`,
-                border: `1.5px solid ${charClass.color}55`,
-                color: charClass.color,
-                fontWeight: 900,
-                letterSpacing: 2,
-                textTransform: "uppercase",
-                textShadow: `0 0 10px ${charClass.color}90`,
-                boxShadow: charClass.minLevel >= 20
-                  ? `0 0 14px ${charClass.color}40, inset 0 0 8px ${charClass.color}12`
-                  : `0 0 6px ${charClass.color}20`,
-                animation: charClass.minLevel >= 20 ? "rank-glow 2s ease-in-out infinite" : undefined,
-                ["--rank-color" as string]: `${charClass.color}55`,
-                ["--rank-color-faint" as string]: `${charClass.color}15`,
-              }}>
-                {charClass.name}
-              </span>
+              {/* RANK BADGE */}
+              {charClass.name === "Ascendente" ? (
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  padding: "5px 13px", borderRadius: 8, whiteSpace: "nowrap",
+                  background: "linear-gradient(90deg, #e879f918, #f59e0b18, #60a5fa18, #e879f918)",
+                  backgroundSize: "300% 100%",
+                  border: "1.5px solid transparent",
+                  backgroundClip: "padding-box",
+                  outline: "1.5px solid transparent",
+                  boxShadow: "0 0 20px #e879f966, 0 0 40px #f59e0b44",
+                  color: "#f0e6ff",
+                  fontSize: 12, fontWeight: 900, letterSpacing: 2,
+                  textTransform: "uppercase",
+                  textShadow: "0 0 12px #e879f9, 0 0 24px #f59e0b88",
+                  animation: "ascendente-pulse 3s ease-in-out infinite",
+                  ["--rank-color" as string]: "#e879f966",
+                  ["--rank-color-faint" as string]: "#e879f922",
+                }}>
+                  {RANK_ICONS["Ascendente"]} ASCENDENTE
+                </span>
+              ) : charClass.name === "Monarca" ? (
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  padding: "5px 12px", borderRadius: 8, whiteSpace: "nowrap",
+                  background: `${charClass.color}18`,
+                  border: `2px solid ${charClass.color}70`,
+                  color: charClass.color,
+                  fontSize: 12, fontWeight: 900, letterSpacing: 2,
+                  textTransform: "uppercase",
+                  textShadow: `0 0 14px ${charClass.color}cc`,
+                  animation: "rank-intense 2s ease-in-out infinite",
+                  ["--rank-color" as string]: `${charClass.color}80`,
+                  ["--rank-color-faint" as string]: `${charClass.color}25`,
+                }}>
+                  {RANK_ICONS["Monarca"]} MONARCA
+                </span>
+              ) : charClass.name === "Nacional" ? (
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  padding: "5px 12px", borderRadius: 8, whiteSpace: "nowrap",
+                  background: `${charClass.color}15`,
+                  border: `2px solid ${charClass.color}60`,
+                  color: charClass.color,
+                  fontSize: 12, fontWeight: 900, letterSpacing: 2,
+                  textTransform: "uppercase",
+                  textShadow: `0 0 12px ${charClass.color}aa`,
+                  animation: "rank-intense 2.5s ease-in-out infinite",
+                  ["--rank-color" as string]: `${charClass.color}70`,
+                  ["--rank-color-faint" as string]: `${charClass.color}20`,
+                }}>
+                  {RANK_ICONS["Nacional"]} NACIONAL
+                </span>
+              ) : (
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 4,
+                  padding: "4px 10px", borderRadius: 6, whiteSpace: "nowrap",
+                  background: `${charClass.color}12`,
+                  border: `1.5px solid ${charClass.color}${charClass.minLevel >= 20 ? "55" : "35"}`,
+                  color: charClass.color,
+                  fontSize: charClass.minLevel >= 20 ? 13 : 12,
+                  fontWeight: 900, letterSpacing: 2,
+                  textShadow: `0 0 8px ${charClass.color}80`,
+                  boxShadow: charClass.minLevel >= 20
+                    ? `0 0 14px ${charClass.color}40, inset 0 0 6px ${charClass.color}10`
+                    : `0 0 4px ${charClass.color}18`,
+                  animation: charClass.minLevel >= 20 ? "rank-glow 2s ease-in-out infinite" : undefined,
+                  ["--rank-color" as string]: `${charClass.color}55`,
+                  ["--rank-color-faint" as string]: `${charClass.color}15`,
+                }}>
+                  {RANK_ICONS[charClass.name]} {charClass.name}
+                </span>
+              )}
               {streak > 0 && (
                 <span style={{ fontSize: 11, padding: "3px 9px", borderRadius: 20, background: `${streakColor(streak)}10`, border: `1px solid ${streakColor(streak)}30`, color: streakColor(streak), fontWeight: 700, display: "flex", alignItems: "center", gap: 4, animation: streak >= 7 ? "glow-pulse 2s ease-in-out infinite" : undefined }}>
                   <Flame size={10} /> {streak} dia{streak !== 1 ? "s" : ""}

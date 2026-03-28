@@ -116,6 +116,22 @@ html, body {
   50%       { box-shadow: 0 0 22px var(--rank-color), 0 0 40px var(--rank-color-faint), inset 0 0 10px var(--rank-color-faint); }
 }
 
+@keyframes rank-intense {
+  0%, 100% { box-shadow: 0 0 16px var(--rank-color), 0 0 32px var(--rank-color-faint), inset 0 0 10px var(--rank-color-faint); transform: scale(1); }
+  50%       { box-shadow: 0 0 32px var(--rank-color), 0 0 64px var(--rank-color-faint), 0 0 90px var(--rank-color-faint), inset 0 0 16px var(--rank-color-faint); transform: scale(1.04); }
+}
+
+@keyframes rank-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes ascendente-pulse {
+  0%, 100% { box-shadow: 0 0 20px #e879f966, 0 0 40px #f59e0b44, 0 0 60px #60a5fa33; transform: scale(1); }
+  33%       { box-shadow: 0 0 30px #60a5fa88, 0 0 60px #e879f955, 0 0 80px #f59e0b33; transform: scale(1.05); }
+  66%       { box-shadow: 0 0 30px #f59e0b88, 0 0 60px #60a5fa55, 0 0 80px #e879f933; transform: scale(1.03); }
+}
+
 @keyframes spine-grow {
   from { transform: translateX(-0.5px) scaleY(0); }
   to   { transform: translateX(-0.5px) scaleY(1); }
