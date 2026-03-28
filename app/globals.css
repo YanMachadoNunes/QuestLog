@@ -111,6 +111,11 @@ html, body {
   to   { stroke-dashoffset: 0; }
 }
 
+@keyframes rank-glow {
+  0%, 100% { box-shadow: 0 0 8px var(--rank-color), inset 0 0 6px var(--rank-color-faint); }
+  50%       { box-shadow: 0 0 22px var(--rank-color), 0 0 40px var(--rank-color-faint), inset 0 0 10px var(--rank-color-faint); }
+}
+
 @keyframes spine-grow {
   from { transform: translateX(-0.5px) scaleY(0); }
   to   { transform: translateX(-0.5px) scaleY(1); }

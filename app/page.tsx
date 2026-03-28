@@ -10,7 +10,7 @@ import XPChart, { type DayXP } from "@/components/XPChart";
 import ActivityCalendar, { type DayActivity } from "@/components/ActivityCalendar";
 import ResetModal from "@/components/ResetModal";
 import { autoFailDailies, resetDailies, checkRest } from "@/lib/actions";
-import { RefreshCw, Heart, Crown, Flame, Plus } from "lucide-react";
+import { RefreshCw, Heart, Flame, Plus } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -138,8 +138,24 @@ export default async function Dashboard() {
               <span style={{ fontSize: 11, padding: "3px 9px", borderRadius: 6, background: `${charClass.color}10`, border: `1px solid ${charClass.color}28`, color: charClass.color, fontWeight: 700, letterSpacing: 1 }}>
                 Lv. {charLevel}
               </span>
-              <span style={{ fontSize: 10, padding: "3px 9px", borderRadius: 20, background: milestone ? "rgba(245,158,11,0.08)" : "#0e0e0e", border: milestone ? "1px solid rgba(245,158,11,0.22)" : "1px solid #1a1a1a", color: milestone ? "#f59e0b" : "#444", display: "flex", alignItems: "center", gap: 4 }}>
-                {milestone && <Crown size={9} color="#f59e0b" />}
+              <span style={{
+                fontSize: charClass.minLevel >= 20 ? 13 : 12,
+                padding: "4px 11px",
+                borderRadius: 6,
+                background: `${charClass.color}15`,
+                border: `1.5px solid ${charClass.color}55`,
+                color: charClass.color,
+                fontWeight: 900,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                textShadow: `0 0 10px ${charClass.color}90`,
+                boxShadow: charClass.minLevel >= 20
+                  ? `0 0 14px ${charClass.color}40, inset 0 0 8px ${charClass.color}12`
+                  : `0 0 6px ${charClass.color}20`,
+                animation: charClass.minLevel >= 20 ? "rank-glow 2s ease-in-out infinite" : undefined,
+                ["--rank-color" as string]: `${charClass.color}55`,
+                ["--rank-color-faint" as string]: `${charClass.color}15`,
+              }}>
                 {charClass.name}
               </span>
               {streak > 0 && (
