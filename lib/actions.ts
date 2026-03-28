@@ -5,6 +5,13 @@ import { getLevelInfo, isMilestoneLevel } from "./xp";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+// Returns midnight of the given date in BRT (UTC-3)
+function brtDayStart(date: Date): Date {
+  const BRT_MS = 3 * 60 * 60 * 1000;
+  const brt = new Date(date.getTime() - BRT_MS);
+  return new Date(Date.UTC(brt.getUTCFullYear(), brt.getUTCMonth(), brt.getUTCDate()) + BRT_MS);
+}
+
 const HP_LOSS      = 10;
 const HP_LOSS_BOSS = 30;
 const HP_REGEN     = 5;
@@ -56,7 +63,7 @@ async function checkAchievements(opts: {
 // ─── AUTO-FAIL ────────────────────────────────────────────────────
 export async function autoFailDailies() {
   const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayStart = brtDayStart(now);
 
   const char = await prisma.character.findFirst({ where: { isTest: false } });
   if (!char) return;
@@ -112,10 +119,9 @@ export async function completeQuest(questId: string) {
   const char = await prisma.character.findFirst({ where: { isTest: false } });
   let newStreak = 0;
   if (char) {
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
-    const last = char.lastActiveDate ? new Date(char.lastActiveDate) : null;
-    if (last) last.setHours(0, 0, 0, 0);
+    const today = brtDayStart(new Date());
+    const yesterday = new Date(today.getTime() - 86_400_000);
+    const last = char.lastActiveDate ? brtDayStart(new Date(char.lastActiveDate)) : null;
 
     newStreak = char.streak;
     if (!last || last.getTime() < yesterday.getTime()) newStreak = 1;
