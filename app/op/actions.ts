@@ -1,16 +1,19 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getLevelInfo } from "@/lib/xp";
 import { revalidatePath } from "next/cache";
 
 const TEST_ATTRS = ["FRC", "INT", "CAR", "DES", "SAB"];
 
+/** XP total necessário para atingir um nível (sum 1..level-1 * 100) */
+function xpForTargetLevel(level: number): number {
+  const l = Math.max(1, Math.min(level, 100));
+  return Math.round(100 * (l - 1) * l / 2);
+}
+
 export async function getTestData() {
   const char = await prisma.character.findFirst({ where: { isTest: true } });
-  const attrs = await prisma.attribute.findMany({
-    where: { type: { endsWith: "_test" } },
-  });
+  const attrs = await prisma.attribute.findMany({ where: { type: { endsWith: "_test" } } });
   return { char, attrs };
 }
 
@@ -32,13 +35,13 @@ export async function initTestCharacter() {
   revalidatePath("/op");
 }
 
-export async function setTestAttrXp(attr: string, xp: number) {
+export async function setTestAttrLevel(attr: string, level: number) {
   const key = `${attr}_test`;
-  const { level } = getLevelInfo(Math.max(0, xp));
+  const xp = xpForTargetLevel(level);
   await prisma.attribute.upsert({
     where: { type: key },
-    update: { xp: Math.max(0, xp), level },
-    create: { type: key, xp: Math.max(0, xp), level },
+    update: { xp, level },
+    create: { type: key, xp, level },
   });
   revalidatePath("/op");
 }
@@ -68,7 +71,7 @@ export async function resetTestCharacter() {
   if (char) {
     await prisma.character.update({
       where: { id: char.id },
-      data: { hp: 100, streak: 0, lastActiveDate: null, lastDailyReset: null, lastRestAt: null },
+      data: { hp: 100, streak: 0 },
     });
   }
   await prisma.attribute.updateMany({
