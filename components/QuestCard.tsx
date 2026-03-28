@@ -3,9 +3,29 @@
 import { completeQuest, failQuest, deleteQuest, toggleSubTask } from "@/lib/actions";
 import { ATTR_COLORS, ATTR_LABELS } from "@/lib/xp";
 import { sfxComplete, sfxFail, sfxBossDefeat, sfxBossFail } from "@/lib/sounds";
-import { CheckCircle2, XCircle, Trash2, Zap, Pencil, CheckSquare, Square } from "lucide-react";
-import { useTransition, useState } from "react";
+import { CheckCircle2, XCircle, Trash2, Zap, Pencil, CheckSquare, Square, Clock } from "lucide-react";
+import { useTransition, useState, useEffect } from "react";
 import Link from "next/link";
+
+function useResetCountdown() {
+  const [secs, setSecs] = useState(0);
+  useEffect(() => {
+    function calc() {
+      const now = new Date();
+      const next = new Date();
+      next.setUTCHours(3, 0, 0, 0); // midnight BRT = 03:00 UTC
+      if (next.getTime() <= now.getTime()) next.setUTCDate(next.getUTCDate() + 1);
+      setSecs(Math.max(0, Math.floor((next.getTime() - now.getTime()) / 1000)));
+    }
+    calc();
+    const id = setInterval(calc, 1000);
+    return () => clearInterval(id);
+  }, []);
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
 
 interface SubTask {
   id: string;
@@ -45,6 +65,7 @@ function getDaysUntilDue(dueDate: Date | null | undefined): number | null {
 export default function QuestCard({ quest }: { quest: Quest }) {
   const [pending, startTransition] = useTransition();
   const [anim, setAnim]            = useState<AnimState>("idle");
+  const countdown                  = useResetCountdown();
 
   const color      = ATTR_COLORS[quest.attribute] || "#f59e0b";
   const isActive   = quest.status === "ACTIVE";
@@ -203,6 +224,11 @@ export default function QuestCard({ quest }: { quest: Quest }) {
             {subTasks.length > 0 && (
               <span style={{ fontSize: 10, color: doneSubs === subTasks.length ? "#22c55e" : "#444" }}>
                 {doneSubs}/{subTasks.length} tarefas
+              </span>
+            )}
+            {quest.type === "DAILY" && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, color: "#2a2a2a", marginLeft: "auto" }}>
+                <Clock size={9} /> reset {countdown}
               </span>
             )}
           </div>
