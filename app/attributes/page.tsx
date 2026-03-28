@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AttributesPage() {
   const [attributes, quests] = await Promise.all([
-    prisma.attribute.findMany(),
+    prisma.attribute.findMany({ where: { type: { not: { endsWith: "_test" } } } }),
     prisma.quest.findMany(),
   ]);
 

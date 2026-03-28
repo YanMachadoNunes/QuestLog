@@ -72,8 +72,8 @@ export default async function Dashboard() {
   const restRegen = await checkRest();
 
   const [character, attributes, quests, recentLogs, weeklyXP, activity] = await Promise.all([
-    prisma.character.findFirst(),
-    prisma.attribute.findMany(),
+    prisma.character.findFirst({ where: { isTest: false } }),
+    prisma.attribute.findMany({ where: { type: { not: { endsWith: "_test" } } } }),
     prisma.quest.findMany({ where: { status: "ACTIVE" }, include: { subTasks: { orderBy: { order: "asc" } } }, take: 20 }),
     prisma.questLog.findMany({ include: { quest: true }, orderBy: { createdAt: "desc" }, take: 8 }),
     getWeeklyXP(),

@@ -58,7 +58,7 @@ export async function autoFailDailies() {
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  const char = await prisma.character.findFirst();
+  const char = await prisma.character.findFirst({ where: { isTest: false } });
   if (!char) return;
 
   if (char.lastDailyReset && new Date(char.lastDailyReset) >= todayStart) return;
@@ -109,7 +109,7 @@ export async function completeQuest(questId: string) {
   const levelAfter = attrAfter?.level ?? levelBefore;
 
   // HP regen + streak
-  const char = await prisma.character.findFirst();
+  const char = await prisma.character.findFirst({ where: { isTest: false } });
   let newStreak = 0;
   if (char) {
     const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -158,7 +158,7 @@ export async function failQuest(questId: string) {
 
   const hpLoss = quest.type === "BOSS" ? HP_LOSS_BOSS : HP_LOSS;
 
-  const char = await prisma.character.findFirst();
+  const char = await prisma.character.findFirst({ where: { isTest: false } });
   if (char) {
     await prisma.character.update({
       where: { id: char.id },
@@ -260,7 +260,7 @@ export async function resetDailies() {
 // Called during render (like autoFailDailies) — no revalidatePath.
 // Returns HP gained from rest (0 if no rest occurred).
 export async function checkRest(): Promise<number> {
-  const char = await prisma.character.findFirst();
+  const char = await prisma.character.findFirst({ where: { isTest: false } });
   if (!char || char.hp >= char.maxHp) return 0;
 
   const now = new Date();
@@ -287,7 +287,7 @@ export async function checkRest(): Promise<number> {
 
 // ─── RESET CHARACTER ──────────────────────────────────────────────
 export async function resetCharacter() {
-  const char = await prisma.character.findFirst();
+  const char = await prisma.character.findFirst({ where: { isTest: false } });
   if (!char) return;
   await prisma.character.update({
     where: { id: char.id },
