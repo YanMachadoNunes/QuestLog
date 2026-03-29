@@ -189,6 +189,22 @@ html, body {
   to   { opacity: 0; transform: translateX(20px) scale(0.95); }
 }
 
+@keyframes boss-pulse {
+  0%, 100% { border-color: rgba(239,68,68,0.2); box-shadow: 0 0 12px rgba(239,68,68,0.04); }
+  50%       { border-color: rgba(239,68,68,0.45); box-shadow: 0 0 30px rgba(239,68,68,0.08), 0 0 60px rgba(239,68,68,0.03); }
+}
+
+@keyframes xp-float {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  60%  { opacity: 1; transform: translateY(-28px) scale(1.15); }
+  100% { opacity: 0; transform: translateY(-52px) scale(0.9); }
+}
+
+@keyframes skel-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* ─── RESPONSIVE ────────────────────────────────────────────────── */
 
 .shell-main {

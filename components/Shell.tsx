@@ -89,7 +89,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               transform: "translateX(-0.5px)",
               width: 1,
               height: spineHeight,
-              background: "linear-gradient(to top, rgba(245,158,11,0.3), rgba(245,158,11,0.04))",
+              background: "linear-gradient(to top, color-mix(in srgb, var(--rank-accent, #f59e0b) 30%, transparent), color-mix(in srgb, var(--rank-accent, #f59e0b) 4%, transparent))",
               animation: "spine-grow 0.35s ease forwards",
               transformOrigin: "bottom",
               pointerEvents: "none",
@@ -226,8 +226,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             width: 58,
             height: 58,
             borderRadius: "50%",
-            background: open ? "#141414" : "rgba(245,158,11,0.09)",
-            border: `2px solid ${open ? "#242424" : "rgba(245,158,11,0.38)"}`,
+            background: open ? "#141414" : "color-mix(in srgb, var(--rank-accent, #f59e0b) 9%, transparent)",
+            border: open ? "2px solid #242424" : "2px solid color-mix(in srgb, var(--rank-accent, #f59e0b) 38%, transparent)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -237,7 +237,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             transition: "background 0.2s, border-color 0.2s, box-shadow 0.2s",
             boxShadow: open
               ? "none"
-              : "0 0 28px rgba(245,158,11,0.14), 0 6px 24px rgba(0,0,0,0.5)",
+              : "0 0 28px color-mix(in srgb, var(--rank-accent, #f59e0b) 14%, transparent), 0 6px 24px rgba(0,0,0,0.5)",
           }}
         >
           <div style={{
@@ -249,7 +249,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           }}>
             {open
               ? <X    size={20} color="#555" />
-              : <Menu size={20} color="#f59e0b" />
+              : <Menu size={20} color="var(--rank-accent, #f59e0b)" />
             }
           </div>
 
@@ -257,13 +257,13 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <>
               <span style={{
                 position: "absolute", inset: -7, borderRadius: "50%",
-                border: "1px solid rgba(245,158,11,0.2)",
+                border: "1px solid color-mix(in srgb, var(--rank-accent, #f59e0b) 20%, transparent)",
                 animation: "ring-expand 3s ease-out infinite",
                 pointerEvents: "none",
               }} />
               <span style={{
                 position: "absolute", inset: -7, borderRadius: "50%",
-                border: "1px solid rgba(245,158,11,0.08)",
+                border: "1px solid color-mix(in srgb, var(--rank-accent, #f59e0b) 8%, transparent)",
                 animation: "ring-expand 3s ease-out 1.5s infinite",
                 pointerEvents: "none",
               }} />
@@ -297,8 +297,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           width: 40,
           height: 40,
           borderRadius: "50%",
-          background: muted ? "#111" : "rgba(245,158,11,0.06)",
-          border: `1.5px solid ${muted ? "#222" : "rgba(245,158,11,0.2)"}`,
+          background: muted ? "#111" : "color-mix(in srgb, var(--rank-accent, #f59e0b) 6%, transparent)",
+          border: muted ? "1.5px solid #222" : "1.5px solid color-mix(in srgb, var(--rank-accent, #f59e0b) 20%, transparent)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -311,7 +311,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       >
         {muted
           ? <VolumeX size={15} color="#555" />
-          : <Volume2 size={15} color="#f59e0b" />
+          : <Volume2 size={15} color="var(--rank-accent, #f59e0b)" />
         }
       </button>
     </div>

@@ -361,6 +361,14 @@ export async function wakeUp() {
   return regen;
 }
 
+// ─── UPDATE CHARACTER NAME ────────────────────────────────────────
+export async function updateCharacterName(name: string) {
+  const char = await prisma.character.findFirst({ where: { isTest: false } });
+  if (!char) return;
+  await prisma.character.update({ where: { id: char.id }, data: { name } });
+  revalidatePath("/");
+}
+
 // ─── RESET CHARACTER ──────────────────────────────────────────────
 export async function resetCharacter() {
   const char = await prisma.character.findFirst({ where: { isTest: false } });

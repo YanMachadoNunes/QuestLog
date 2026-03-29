@@ -215,7 +215,11 @@ export default function LevelUpCelebration() {
         <div
           style={{
             fontSize: 14,
-            color: "#888",
+            color: color,
+            opacity: 0.75,
+            fontWeight: 700,
+            letterSpacing: 1,
+            textTransform: "uppercase",
             marginBottom: 20,
             animation: "float-in 0.4s 0.35s both",
           }}

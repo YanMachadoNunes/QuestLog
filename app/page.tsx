@@ -10,6 +10,8 @@ import XPChart, { type DayXP } from "@/components/XPChart";
 import ActivityCalendar, { type DayActivity } from "@/components/ActivityCalendar";
 import ResetModal from "@/components/ResetModal";
 import SleepButton from "@/components/SleepButton";
+import EditableName from "@/components/EditableName";
+import RankTheme from "@/components/RankTheme";
 import { autoFailDailies, resetDailies, checkRest } from "@/lib/actions";
 import { RefreshCw, Heart, Flame, Plus, Shield, Award, Star, Globe, Crown, Sparkles, ChevronUp, Minus } from "lucide-react";
 import Link from "next/link";
@@ -119,6 +121,7 @@ export default async function Dashboard() {
 
   return (
     <div className="animate-float-in">
+      <RankTheme color={charClass.color} />
 
       {/* ── Auto-fail banner ──────────────────────────── */}
       {failResult.failedCount > 0 && (
@@ -217,7 +220,7 @@ export default async function Dashboard() {
           {/* Info */}
           <div style={{ flex: 1, minWidth: 180 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
-              <span style={{ fontSize: 18, fontWeight: 700, color: "#e5e5e5" }}>{character?.name ?? "Aventureiro"}</span>
+              <EditableName name={character?.name ?? "Aventureiro"} />
               <span style={{ fontSize: 11, padding: "3px 9px", borderRadius: 6, background: `${charClass.color}10`, border: `1px solid ${charClass.color}28`, color: charClass.color, fontWeight: 700, letterSpacing: 1 }}>
                 Lv. {charLevel}
               </span>

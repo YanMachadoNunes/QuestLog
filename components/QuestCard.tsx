@@ -67,6 +67,7 @@ export default function QuestCard({ quest }: { quest: Quest }) {
   const [pending, startTransition] = useTransition();
   const [anim, setAnim]            = useState<AnimState>("idle");
   const [deleteState, setDeleteState] = useState<DeleteState>("idle");
+  const [xpFloat, setXpFloat]      = useState(false);
   const countdown                  = useResetCountdown();
 
   const color      = ATTR_COLORS[quest.attribute] || "#f59e0b";
@@ -90,6 +91,8 @@ export default function QuestCard({ quest }: { quest: Quest }) {
 
   const handleOk = () => {
     setAnim("ok");
+    setXpFloat(true);
+    setTimeout(() => setXpFloat(false), 900);
     isBoss ? sfxBossDefeat() : sfxComplete();
     setTimeout(() => startTransition(() => completeQuest(quest.id)), 420);
   };
@@ -146,6 +149,8 @@ export default function QuestCard({ quest }: { quest: Quest }) {
         ? "card-fail 0.42s ease forwards"
         : isUrgent
         ? "urgent-pulse 2s ease-in-out infinite"
+        : isBoss && isActive
+        ? "boss-pulse 3s ease-in-out infinite"
         : undefined,
   };
 
@@ -161,6 +166,21 @@ export default function QuestCard({ quest }: { quest: Quest }) {
           background: anim === "ok" ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)",
           animation: "fade-overlay 0.42s ease forwards",
         }} />
+      )}
+
+      {/* Floating XP */}
+      {xpFloat && (
+        <div style={{
+          position: "absolute", top: "30%", right: 120,
+          fontSize: 15, fontWeight: 900,
+          color: color,
+          textShadow: `0 0 12px ${color}80`,
+          animation: "xp-float 0.9s ease forwards",
+          pointerEvents: "none", zIndex: 10,
+          letterSpacing: 0.5,
+        }}>
+          +{effectiveXP} XP
+        </div>
       )}
 
       <div className="quest-card-row">
