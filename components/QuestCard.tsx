@@ -50,6 +50,7 @@ interface Quest {
 }
 
 type AnimState = "idle" | "ok" | "fail";
+type DeleteState = "idle" | "confirm";
 
 const DIFF_COLORS: Record<string, string> = { EASY: "#22c55e", NORMAL: "#555", HARD: "#ef4444" };
 const DIFF_MULT:   Record<string, number> = { EASY: 0.5, NORMAL: 1, HARD: 2 };
@@ -65,6 +66,7 @@ function getDaysUntilDue(dueDate: Date | null | undefined): number | null {
 export default function QuestCard({ quest }: { quest: Quest }) {
   const [pending, startTransition] = useTransition();
   const [anim, setAnim]            = useState<AnimState>("idle");
+  const [deleteState, setDeleteState] = useState<DeleteState>("idle");
   const countdown                  = useResetCountdown();
 
   const color      = ATTR_COLORS[quest.attribute] || "#f59e0b";
@@ -96,7 +98,14 @@ export default function QuestCard({ quest }: { quest: Quest }) {
     isBoss ? sfxBossFail() : sfxFail();
     setTimeout(() => startTransition(() => failQuest(quest.id)), 420);
   };
-  const handleDelete = () => startTransition(() => deleteQuest(quest.id));
+  const handleDelete = () => {
+    if (deleteState === "idle") {
+      setDeleteState("confirm");
+      setTimeout(() => setDeleteState("idle"), 3000);
+      return;
+    }
+    startTransition(() => deleteQuest(quest.id));
+  };
   const handleToggleSub = (id: string) => startTransition(() => toggleSubTask(id));
 
   const urgentBorderColor = isOverdue
@@ -349,14 +358,20 @@ export default function QuestCard({ quest }: { quest: Quest }) {
             onClick={handleDelete}
             disabled={pending}
             style={{
-              padding: 8, borderRadius: 7, border: "1px solid #222",
-              background: "#0d0d0d", color: "#555",
-              cursor: "pointer", flexShrink: 0, transition: "color 0.15s, border-color 0.15s",
+              padding: deleteState === "confirm" ? "6px 10px" : 8,
+              borderRadius: 7,
+              border: deleteState === "confirm" ? "1px solid rgba(239,68,68,0.5)" : "1px solid #222",
+              background: deleteState === "confirm" ? "rgba(239,68,68,0.1)" : "#0d0d0d",
+              color: deleteState === "confirm" ? "#ef4444" : "#555",
+              cursor: "pointer", flexShrink: 0,
+              transition: "all 0.15s",
+              display: "flex", alignItems: "center", gap: 5,
+              fontSize: 11, fontFamily: "var(--font-mono)", whiteSpace: "nowrap",
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#ef4444"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(239,68,68,0.3)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#555"; (e.currentTarget as HTMLButtonElement).style.borderColor = "#222"; }}
+            onMouseEnter={(e) => { if (deleteState === "idle") { (e.currentTarget as HTMLButtonElement).style.color = "#ef4444"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(239,68,68,0.3)"; }}}
+            onMouseLeave={(e) => { if (deleteState === "idle") { (e.currentTarget as HTMLButtonElement).style.color = "#555"; (e.currentTarget as HTMLButtonElement).style.borderColor = "#222"; }}}
           >
-            <Trash2 size={14} />
+            {deleteState === "confirm" ? <><XCircle size={12} /> confirmar?</> : <Trash2 size={14} />}
           </button>
         </div>
       </div>

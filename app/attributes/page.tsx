@@ -5,13 +5,23 @@ import StatBar from "@/components/StatBar";
 export const dynamic = "force-dynamic";
 
 export default async function AttributesPage() {
-  const [attributes, quests] = await Promise.all([
+  const [attributes, quests, completedLogs] = await Promise.all([
     prisma.attribute.findMany({ where: { type: { not: { endsWith: "_test" } } } }),
     prisma.quest.findMany(),
+    prisma.questLog.findMany({
+      where: { action: "COMPLETED" },
+      select: { quest: { select: { attribute: true } } },
+    }),
   ]);
 
+  // Historical completion count per attribute (based on permanent log, not transient status)
+  const completedByAttr = completedLogs.reduce((acc, log) => {
+    acc[log.quest.attribute] = (acc[log.quest.attribute] ?? 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
   const attrMap = Object.fromEntries(attributes.map((a) => [a.type, a]));
-  const allAttrs = ["INT", "CAR", "DES", "SAB"].map(
+  const allAttrs = ["FRC", "INT", "CAR", "DES", "SAB"].map(
     (t) => attrMap[t] || { id: t, type: t, xp: 0, level: 1 }
   );
 
@@ -31,7 +41,7 @@ export default async function AttributesPage() {
           const color = ATTR_COLORS[attr.type];
           const { level, currentXP, xpForNext, progress } = getLevelInfo(attr.xp);
           const attrQuests = quests.filter((q) => q.attribute === attr.type);
-          const completed = attrQuests.filter((q) => q.status === "COMPLETED");
+          const completedCount = completedByAttr[attr.type] ?? 0;
           const active = attrQuests.filter((q) => q.status === "ACTIVE");
 
           return (
@@ -107,7 +117,7 @@ export default async function AttributesPage() {
                 </div>
                 <div>
                   <span style={{ color: "#444" }}>Concluídas: </span>
-                  <span style={{ color: "#22c55e", fontWeight: 600 }}>{completed.length}</span>
+                  <span style={{ color: "#22c55e", fontWeight: 600 }}>{completedCount}</span>
                 </div>
                 <div>
                   <span style={{ color: "#444" }}>Total: </span>

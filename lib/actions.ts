@@ -109,13 +109,18 @@ export async function autoFailDailies(): Promise<{ failedCount: number; streakBr
     });
   }
 
-  const streakBroken = staleDailies.length > 0 && char.streak > 0;
+  // Streak breaks only if user completed ZERO quests yesterday
+  const yesterdayStart = new Date(todayStart.getTime() - 86_400_000);
+  const completedYesterday = await prisma.questLog.count({
+    where: { action: "COMPLETED", createdAt: { gte: yesterdayStart, lt: todayStart } },
+  });
+  const streakBroken = completedYesterday === 0 && char.streak > 0;
 
   await prisma.character.update({
     where: { id: char.id },
     data: {
       hp: Math.max(0, char.hp - hpLost),
-      streak: staleDailies.length > 0 ? 0 : char.streak,
+      streak: streakBroken ? 0 : char.streak,
       lastDailyReset: now,
     },
   });

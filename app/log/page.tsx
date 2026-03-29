@@ -107,11 +107,16 @@ export default async function LogPage() {
                             fontSize: 10,
                             padding: "2px 7px",
                             borderRadius: 4,
-                            background: log.quest.type === "EPIC" ? "rgba(245,158,11,0.1)" : "transparent",
-                            color: log.quest.type === "EPIC" ? "#f59e0b" : "#444",
+                            background:
+                              log.quest.type === "BOSS" ? "rgba(239,68,68,0.1)" :
+                              log.quest.type === "EPIC" ? "rgba(245,158,11,0.1)" : "transparent",
+                            color:
+                              log.quest.type === "BOSS" ? "#ef4444" :
+                              log.quest.type === "EPIC" ? "#f59e0b" : "#444",
                           }}
                         >
-                          {log.quest.type === "EPIC" ? "★ EPIC" : "DAILY"}
+                          {log.quest.type === "BOSS" ? "☠ BOSS" :
+                           log.quest.type === "EPIC" ? "★ EPIC" : "DAILY"}
                         </span>
 
                         {log.xpChange > 0 && (
