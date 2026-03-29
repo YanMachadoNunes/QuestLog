@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "./prisma";
-import { getLevelInfo, isMilestoneLevel } from "./xp";
+import { getLevelInfo, isMilestoneLevel, getCharacterLevel, maxHpForCharLevel } from "./xp";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -16,11 +16,27 @@ const HP_LOSS      = 10;
 const HP_LOSS_BOSS = 30;
 const HP_REGEN     = 5;
 
+const HP_LOSS_BY_DIFF: Record<string, number> = { EASY: 5, NORMAL: 10, HARD: 20 };
+
 const DIFFICULTY_MULT: Record<string, number> = { EASY: 0.5, NORMAL: 1, HARD: 2 };
 
 function effectiveXP(baseXP: number, type: string, difficulty: string): number {
   const mult = type === "BOSS" ? 3 : (DIFFICULTY_MULT[difficulty] ?? 1);
   return Math.round(baseXP * mult);
+}
+
+async function syncMaxHp() {
+  const char = await prisma.character.findFirst({ where: { isTest: false } });
+  if (!char) return;
+  const attrs = await prisma.attribute.findMany();
+  const levels = ["FRC", "INT", "CAR", "DES", "SAB"].map(
+    (t) => attrs.find((a) => a.type === t)?.level ?? 1
+  );
+  const charLevel = getCharacterLevel(levels);
+  const newMaxHp  = maxHpForCharLevel(charLevel);
+  if (newMaxHp !== char.maxHp) {
+    await prisma.character.update({ where: { id: char.id }, data: { maxHp: newMaxHp } });
+  }
 }
 
 async function syncAttrLevel(type: string) {
@@ -61,31 +77,44 @@ async function checkAchievements(opts: {
 }
 
 // ─── AUTO-FAIL ────────────────────────────────────────────────────
-export async function autoFailDailies() {
+export async function autoFailDailies(): Promise<{ failedCount: number; streakBroken: boolean; hpLost: number }> {
   const now = new Date();
   const todayStart = brtDayStart(now);
 
-  const char = await prisma.character.findFirst({ where: { isTest: false } });
-  if (!char) return;
+  // Auto-create character if missing (prevents silent failures on fresh installs)
+  let char = await prisma.character.findFirst({ where: { isTest: false } });
+  if (!char) {
+    char = await prisma.character.upsert({
+      where: { id: "main" },
+      update: {},
+      create: { id: "main", name: "Aventureiro", hp: 100, maxHp: 100, isTest: false },
+    });
+  }
 
-  if (char.lastDailyReset && new Date(char.lastDailyReset) >= todayStart) return;
+  if (char.lastDailyReset && new Date(char.lastDailyReset) >= todayStart) {
+    return { failedCount: 0, streakBroken: false, hpLost: 0 };
+  }
 
   const staleDailies = await prisma.quest.findMany({
     where: { type: "DAILY", status: "ACTIVE", createdAt: { lt: todayStart } },
   });
 
+  let hpLost = 0;
   for (const q of staleDailies) {
+    const loss = HP_LOSS_BY_DIFF[q.difficulty] ?? HP_LOSS;
+    hpLost += loss;
     await prisma.quest.update({ where: { id: q.id }, data: { status: "FAILED", failedAt: now } });
     await prisma.questLog.create({
-      data: { questId: q.id, action: "FAILED", xpChange: 0, hpChange: -HP_LOSS, note: "Auto-fail: dia novo" },
+      data: { questId: q.id, action: "FAILED", xpChange: 0, hpChange: -loss, note: "Auto-fail: dia novo" },
     });
   }
 
-  const hpLoss = staleDailies.length * HP_LOSS;
+  const streakBroken = staleDailies.length > 0 && char.streak > 0;
+
   await prisma.character.update({
     where: { id: char.id },
     data: {
-      hp: Math.max(0, char.hp - hpLoss),
+      hp: Math.max(0, char.hp - hpLost),
       streak: staleDailies.length > 0 ? 0 : char.streak,
       lastDailyReset: now,
     },
@@ -95,6 +124,8 @@ export async function autoFailDailies() {
     where: { type: "DAILY" },
     data: { status: "ACTIVE", completedAt: null, failedAt: null },
   });
+
+  return { failedCount: staleDailies.length, streakBroken, hpLost };
 }
 
 // ─── COMPLETE QUEST ───────────────────────────────────────────────
@@ -135,6 +166,7 @@ export async function completeQuest(questId: string) {
 
   await prisma.quest.update({ where: { id: questId }, data: { status: "COMPLETED", completedAt: new Date() } });
   await prisma.questLog.create({ data: { questId, action: "COMPLETED", xpChange: xp, hpChange: HP_REGEN } });
+  await syncMaxHp();
 
   // Check first completion
   const logCount = await prisma.questLog.count({ where: { action: "COMPLETED" } });

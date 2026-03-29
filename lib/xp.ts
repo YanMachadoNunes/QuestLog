@@ -128,6 +128,11 @@ export function isMilestoneLevel(level: number) {
   return [20, 40, 60, 80, 100].includes(level);
 }
 
+// maxHp scales with character level: 100 base + 5 per level above 1
+export function maxHpForCharLevel(charLevel: number): number {
+  return 100 + (charLevel - 1) * 5;
+}
+
 // ─── CONSTANTS ───────────────────────────────────────────────────
 export const ATTR_LABELS: Record<string, string> = {
   FRC: "Força",

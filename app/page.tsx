@@ -80,16 +80,18 @@ function streakColor(n: number) {
 }
 
 export default async function Dashboard() {
-  await autoFailDailies();
-  const restRegen = await checkRest();
+  const failResult = await autoFailDailies();
+  const restRegen  = await checkRest();
 
-  const [character, attributes, quests, recentLogs, weeklyXP, activity] = await Promise.all([
+  const [character, attributes, quests, recentLogs, weeklyXP, activity, completedToday, totalDailiesCount] = await Promise.all([
     prisma.character.findFirst({ where: { isTest: false } }),
     prisma.attribute.findMany({ where: { type: { not: { endsWith: "_test" } } } }),
     prisma.quest.findMany({ where: { status: "ACTIVE" }, include: { subTasks: { orderBy: { order: "asc" } } }, take: 20 }),
     prisma.questLog.findMany({ include: { quest: true }, orderBy: { createdAt: "desc" }, take: 8 }),
     getWeeklyXP(),
     getActivityData(),
+    prisma.quest.count({ where: { type: "DAILY", status: "COMPLETED" } }),
+    prisma.quest.count({ where: { type: "DAILY" } }),
   ]);
 
   const attrMap  = Object.fromEntries(attributes.map((a) => [a.type, a]));
@@ -118,8 +120,28 @@ export default async function Dashboard() {
   return (
     <div className="animate-float-in">
 
+      {/* ── Auto-fail banner ──────────────────────────── */}
+      {failResult.failedCount > 0 && (
+        <div style={{
+          background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.2)",
+          borderRadius: 10, padding: "12px 18px", marginBottom: 20,
+          display: "flex", alignItems: "center", gap: 12, fontSize: 13,
+        }}>
+          <span style={{ fontSize: 20 }}>💀</span>
+          <div>
+            <span style={{ color: "#ef4444", fontWeight: 700 }}>
+              {failResult.failedCount} daily{failResult.failedCount !== 1 ? "ies" : ""} falharam ontem
+            </span>
+            <span style={{ color: "#555" }}>
+              {failResult.hpLost > 0 && ` · -${failResult.hpLost} HP`}
+              {failResult.streakBroken && " · streak resetado"}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* ── Header ────────────────────────────────────── */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 32 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#e5e5e5", letterSpacing: 0.5 }}>Dashboard</h1>
           <p style={{ margin: "4px 0 0", fontSize: 12, color: "#444" }}>Status do personagem e missões ativas</p>
@@ -133,6 +155,55 @@ export default async function Dashboard() {
         }}>
           <Plus size={13} /> Nova Quest
         </Link>
+      </div>
+
+      {/* ── Streak Banner ─────────────────────────────── */}
+      <div style={{
+        background: streak > 0
+          ? `radial-gradient(ellipse at left, ${streakColor(streak)}09 0%, transparent 65%)`
+          : "#0a0a0a",
+        border: `1px solid ${streak >= 7 ? streakColor(streak) + "40" : streak > 0 ? streakColor(streak) + "22" : "#1a1a1a"}`,
+        borderRadius: 14, padding: "18px 22px", marginBottom: 20,
+        display: "flex", alignItems: "center", gap: 18,
+        animation: streak >= 7 ? "glow-pulse 3s ease-in-out infinite" : undefined,
+        ["--rank-color" as string]: streakColor(streak) + "55",
+        ["--rank-color-faint" as string]: streakColor(streak) + "18",
+      }}>
+        <div style={{ fontSize: streak > 0 ? 42 : 34, lineHeight: 1 }}>
+          {streak >= 14 ? "🔥" : streak >= 7 ? "🔥" : streak >= 3 ? "⚡" : streak > 0 ? "✨" : failResult.streakBroken ? "💀" : "🌑"}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{
+            fontSize: streak > 0 ? 22 : 16, fontWeight: 900,
+            color: streak > 0 ? streakColor(streak) : failResult.streakBroken ? "#ef4444" : "#2a2a2a",
+            fontFamily: "var(--font-mono)", letterSpacing: 1,
+          }}>
+            {streak > 0
+              ? `${streak} DIA${streak !== 1 ? "S" : ""} SEGUIDO${streak !== 1 ? "S" : ""}`
+              : failResult.streakBroken ? "STREAK PERDIDO"
+              : "SEM STREAK"}
+          </div>
+          <div style={{ fontSize: 12, color: "#444", marginTop: 4 }}>
+            {streak >= 14 ? "Você está em chamas — não quebre agora."
+            : streak >= 7  ? "Uma semana seguida — impressionante!"
+            : streak >= 3  ? "Momentum construindo — complete as dailies hoje!"
+            : streak > 0   ? "Bom começo! Mantenha amanhã."
+            : failResult.streakBroken ? "Recomece completando dailies hoje."
+            : "Complete dailies hoje para começar sua sequência."}
+          </div>
+        </div>
+        {streak > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5, maxWidth: 130, justifyContent: "flex-end" }}>
+            {Array.from({ length: Math.min(streak, 14) }, (_, i) => (
+              <div key={i} style={{
+                width: 9, height: 9, borderRadius: "50%",
+                background: streakColor(streak),
+                opacity: 0.4 + (i / Math.min(streak, 14)) * 0.6,
+                boxShadow: i === Math.min(streak, 14) - 1 ? `0 0 7px ${streakColor(streak)}` : undefined,
+              }} />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Character card ────────────────────────────── */}
@@ -235,6 +306,19 @@ export default async function Dashboard() {
                 <span style={{ color: hpColor, fontWeight: 600 }}>{hp} / {maxHp}</span>
               </div>
               <StatBar current={hp} max={maxHp} color={hpColor} height={7} />
+              {/* Daily completion rate */}
+              {totalDailiesCount > 0 && (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 11 }}>
+                    <span style={{ color: "#333", display: "flex", alignItems: "center", gap: 4 }}>⚡ Dailies hoje</span>
+                    <span style={{ color: completedToday === totalDailiesCount ? "#22c55e" : "#444", fontWeight: 600 }}>
+                      {completedToday}/{totalDailiesCount}
+                    </span>
+                  </div>
+                  <StatBar current={completedToday} max={totalDailiesCount} color={completedToday === totalDailiesCount ? "#22c55e" : "#22d3ee"} height={4} />
+                </div>
+              )}
+
               {/* Rest feedback */}
               {restRegen > 0 ? (
                 <div style={{ fontSize: 10, color: "#22c55e", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>

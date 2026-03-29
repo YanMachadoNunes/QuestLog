@@ -194,6 +194,17 @@ export default function QuestCard({ quest }: { quest: Quest }) {
               </span>
             )}
 
+            {/* Boss sem prazo warning */}
+            {isBoss && !quest.dueDate && isActive && (
+              <span style={{
+                fontSize: 9, padding: "2px 6px", borderRadius: 4, letterSpacing: 0.5,
+                color: "#f59e0b", background: "rgba(245,158,11,0.08)",
+                border: "1px solid rgba(245,158,11,0.2)",
+              }}>
+                ⚠ sem prazo
+              </span>
+            )}
+
             {/* Due date badge */}
             {daysLeft !== null && isActive && (
               <span style={{
@@ -232,6 +243,21 @@ export default function QuestCard({ quest }: { quest: Quest }) {
               </span>
             )}
           </div>
+
+          {/* Subtask progress bar */}
+          {subTasks.length > 0 && (
+            <div style={{ marginTop: 7 }}>
+              <div style={{ height: 3, background: "#1a1a1a", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{
+                  height: "100%",
+                  width: `${Math.round((doneSubs / subTasks.length) * 100)}%`,
+                  background: doneSubs === subTasks.length ? "#22c55e" : "#f59e0b",
+                  borderRadius: 2,
+                  transition: "width 0.4s ease",
+                }} />
+              </div>
+            </div>
+          )}
 
           {/* Sub-tasks */}
           {subTasks.length > 0 && isActive && (
