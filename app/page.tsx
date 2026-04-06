@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import {
-  getCharacterLevel, ATTR_COLORS,
-  CHAR_CLASSES, ATTR_CLASSES, getClass, isMilestoneLevel,
+  getCharacterLevel, ATTR_COLORS, ATTR_LABELS,
+  CHAR_CLASSES, ATTR_CLASSES, getClass, isMilestoneLevel, getLevelInfo,
 } from "@/lib/xp";
 import AttributeCard from "@/components/AttributeCard";
 import QuestCard from "@/components/QuestCard";
@@ -13,20 +13,23 @@ import SleepButton from "@/components/SleepButton";
 import EditableName from "@/components/EditableName";
 import RankTheme from "@/components/RankTheme";
 import { autoFailDailies, resetDailies, checkRest } from "@/lib/actions";
-import { RefreshCw, Heart, Flame, Plus, Shield, Award, Star, Globe, Crown, Sparkles, ChevronUp, Minus } from "lucide-react";
+import {
+  RefreshCw, Heart, Flame, Plus, Shield, Award, Star,
+  Globe, Crown, Sparkles, ChevronUp, Minus, CheckCircle2, Circle, TrendingUp,
+} from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 const RANK_ICONS: Record<string, React.ReactNode> = {
-  D:          <Minus size={11} />,
-  C:          <ChevronUp size={11} />,
-  B:          <Shield size={11} />,
-  A:          <Award size={12} />,
-  S:          <Star size={13} fill="currentColor" />,
-  Nacional:   <Globe size={13} />,
-  Monarca:    <Crown size={14} fill="currentColor" />,
-  Ascendente: <Sparkles size={14} />,
+  D:          <Minus size={10} />,
+  C:          <ChevronUp size={10} />,
+  B:          <Shield size={10} />,
+  A:          <Award size={11} />,
+  S:          <Star size={12} fill="currentColor" />,
+  Nacional:   <Globe size={12} />,
+  Monarca:    <Crown size={13} fill="currentColor" />,
+  Ascendente: <Sparkles size={13} />,
 };
 
 async function getWeeklyXP(): Promise<DayXP[]> {
@@ -111,13 +114,7 @@ export default async function Dashboard() {
   const hpColor = hpPct <= 25 ? "#ef4444" : hpPct <= 50 ? "#f59e0b" : "#22c55e";
   const streak  = character?.streak ?? 0;
   const hasXP   = weeklyXP.some(d => d.total > 0);
-
-  // Rest state (computed server-side)
-  const lastActive     = character?.lastActiveDate ? new Date(character.lastActiveDate) : null;
-  const hoursSinceActive = lastActive ? (Date.now() - lastActive.getTime()) / 3_600_000 : 999;
-  const isResting      = hoursSinceActive >= 8;
-  const hoursUntilRest = isResting ? 0 : Math.ceil(8 - hoursSinceActive);
-  const nextRegen      = hoursSinceActive >= 24 ? 35 : hoursSinceActive >= 16 ? 25 : 15;
+  const todayLabel = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
 
   return (
     <div className="animate-float-in">
@@ -126,16 +123,17 @@ export default async function Dashboard() {
       {/* ── Auto-fail banner ──────────────────────────── */}
       {failResult.failedCount > 0 && (
         <div style={{
-          background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.2)",
-          borderRadius: 10, padding: "12px 18px", marginBottom: 20,
-          display: "flex", alignItems: "center", gap: 12, fontSize: 13,
+          background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.16)",
+          borderLeft: "3px solid rgba(239,68,68,0.5)",
+          borderRadius: 8, padding: "10px 16px", marginBottom: 20,
+          display: "flex", alignItems: "center", gap: 10, fontSize: 12,
         }}>
-          <span style={{ fontSize: 20 }}>💀</span>
+          <span style={{ fontSize: 16 }}>💀</span>
           <div>
             <span style={{ color: "#ef4444", fontWeight: 700 }}>
-              {failResult.failedCount} daily{failResult.failedCount !== 1 ? "ies" : ""} falharam ontem
+              {failResult.failedCount} {failResult.failedCount !== 1 ? "dailies falharam" : "daily falhou"} ontem
             </span>
-            <span style={{ color: "#555" }}>
+            <span style={{ color: "#444" }}>
               {failResult.hpLost > 0 && ` · -${failResult.hpLost} HP`}
               {failResult.streakBroken && " · streak resetado"}
             </span>
@@ -143,331 +141,449 @@ export default async function Dashboard() {
         </div>
       )}
 
-      {/* ── Header ────────────────────────────────────── */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
+      {/* ── Page header ───────────────────────────────── */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24, gap: 12 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#e5e5e5", letterSpacing: 0.5 }}>Dashboard</h1>
-          <p style={{ margin: "4px 0 0", fontSize: 12, color: "#444" }}>Status do personagem e missões ativas</p>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#e5e5e5", letterSpacing: 0.3 }}>
+            Hoje
+          </h1>
+          <p style={{ margin: "3px 0 0", fontSize: 11, color: "#333", textTransform: "capitalize" }}>
+            {todayLabel}
+          </p>
         </div>
-        <Link href="/quests/new" style={{
-          display: "flex", alignItems: "center", gap: 6, padding: "8px 14px",
-          borderRadius: 8, border: "1px solid rgba(245,158,11,0.25)",
-          background: "rgba(245,158,11,0.07)", color: "#f59e0b",
-          fontSize: 12, fontWeight: 700, textDecoration: "none",
-          fontFamily: "var(--font-mono)", letterSpacing: 0.5,
-        }}>
-          <Plus size={13} /> Nova Quest
-        </Link>
-      </div>
-
-      {/* ── Streak Banner ─────────────────────────────── */}
-      <div style={{
-        background: streak > 0
-          ? `radial-gradient(ellipse at left, ${streakColor(streak)}09 0%, transparent 65%)`
-          : "#0a0a0a",
-        border: `1px solid ${streak >= 7 ? streakColor(streak) + "40" : streak > 0 ? streakColor(streak) + "22" : "#1a1a1a"}`,
-        borderRadius: 14, padding: "18px 22px", marginBottom: 20,
-        display: "flex", alignItems: "center", gap: 18,
-        animation: streak >= 7 ? "glow-pulse 3s ease-in-out infinite" : undefined,
-        ["--rank-color" as string]: streakColor(streak) + "55",
-        ["--rank-color-faint" as string]: streakColor(streak) + "18",
-      }}>
-        <div style={{ fontSize: streak > 0 ? 42 : 34, lineHeight: 1 }}>
-          {streak >= 14 ? "🔥" : streak >= 7 ? "🔥" : streak >= 3 ? "⚡" : streak > 0 ? "✨" : failResult.streakBroken ? "💀" : "🌑"}
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{
-            fontSize: streak > 0 ? 22 : 16, fontWeight: 900,
-            color: streak > 0 ? streakColor(streak) : failResult.streakBroken ? "#ef4444" : "#2a2a2a",
-            fontFamily: "var(--font-mono)", letterSpacing: 1,
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {streak > 0 && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "6px 12px", borderRadius: 20,
+              background: `${streakColor(streak)}0a`,
+              border: `1px solid ${streakColor(streak)}25`,
+              animation: streak >= 7 ? "glow-pulse 3s ease-in-out infinite" : undefined,
+            }}>
+              <span style={{ fontSize: 14 }}>{streak >= 14 ? "🔥" : streak >= 7 ? "🔥" : streak >= 3 ? "⚡" : "✨"}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: streakColor(streak) }}>{streak}</span>
+            </div>
+          )}
+          <Link href="/quests/new" style={{
+            display: "flex", alignItems: "center", gap: 5, padding: "7px 12px",
+            borderRadius: 7, border: "1px solid rgba(245,158,11,0.2)",
+            background: "rgba(245,158,11,0.06)", color: "#f59e0b",
+            fontSize: 11, fontWeight: 700, textDecoration: "none",
+            fontFamily: "var(--font-mono)", letterSpacing: 0.5,
           }}>
-            {streak > 0
-              ? `${streak} DIA${streak !== 1 ? "S" : ""} SEGUIDO${streak !== 1 ? "S" : ""}`
-              : failResult.streakBroken ? "STREAK PERDIDO"
-              : "SEM STREAK"}
-          </div>
-          <div style={{ fontSize: 12, color: "#444", marginTop: 4 }}>
-            {streak >= 14 ? "Você está em chamas — não quebre agora."
-            : streak >= 7  ? "Uma semana seguida — impressionante!"
-            : streak >= 3  ? "Momentum construindo — complete as dailies hoje!"
-            : streak > 0   ? "Bom começo! Mantenha amanhã."
-            : failResult.streakBroken ? "Recomece completando dailies hoje."
-            : "Complete dailies hoje para começar sua sequência."}
-          </div>
+            <Plus size={12} /> Nova Quest
+          </Link>
         </div>
-        {streak > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 5, maxWidth: 130, justifyContent: "flex-end" }}>
-            {Array.from({ length: Math.min(streak, 14) }, (_, i) => (
-              <div key={i} style={{
-                width: 9, height: 9, borderRadius: "50%",
-                background: streakColor(streak),
-                opacity: 0.4 + (i / Math.min(streak, 14)) * 0.6,
-                boxShadow: i === Math.min(streak, 14) - 1 ? `0 0 7px ${streakColor(streak)}` : undefined,
+      </div>
+
+      {/* ── Today progress bar ────────────────────────── */}
+      {totalDailiesCount > 0 && (
+        <div style={{
+          background: "#111", border: "1px solid #1c1c1c", borderRadius: 10,
+          padding: "14px 18px", marginBottom: 20,
+          display: "flex", alignItems: "center", gap: 14,
+        }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
+              <span style={{ fontSize: 11, color: "#444", display: "flex", alignItems: "center", gap: 5 }}>
+                <CheckCircle2 size={12} color={completedToday === totalDailiesCount ? "#22c55e" : "#333"} />
+                Dailies hoje
+              </span>
+              <span style={{
+                fontSize: 12, fontWeight: 700,
+                color: completedToday === totalDailiesCount ? "#22c55e" : "#555",
+              }}>
+                {completedToday} / {totalDailiesCount}
+              </span>
+            </div>
+            <div style={{ height: 5, background: "#1a1a1a", borderRadius: 3, overflow: "hidden" }}>
+              <div style={{
+                height: "100%",
+                width: `${Math.round((completedToday / totalDailiesCount) * 100)}%`,
+                background: completedToday === totalDailiesCount
+                  ? "linear-gradient(90deg, #22c55e, #4ade80)"
+                  : "linear-gradient(90deg, #22d3ee, #60a5fa)",
+                borderRadius: 3,
+                transition: "width 0.5s ease",
               }} />
+            </div>
+          </div>
+          {completedToday === totalDailiesCount && (
+            <span style={{ fontSize: 18 }}>🎉</span>
+          )}
+        </div>
+      )}
+
+      {/* ── Dailies ───────────────────────────────────── */}
+      {dailies.length > 0 ? (
+        <Section label="Dailies" count={dailies.length} accent="#22d3ee">
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {dailies.map((q, i) => (
+              <div key={q.id} className="animate-slide-right" style={{ animationDelay: `${i * 0.04}s`, opacity: 0 }}>
+                <QuestCard quest={q} />
+              </div>
             ))}
           </div>
-        )}
-      </div>
+        </Section>
+      ) : totalDailiesCount === 0 ? (
+        <div style={{
+          background: "#111", border: "1px solid #1c1c1c", borderRadius: 10,
+          padding: "28px 20px", marginBottom: 28, textAlign: "center",
+        }}>
+          <Circle size={32} color="#1e1e1e" style={{ marginBottom: 10 }} />
+          <p style={{ fontSize: 12, color: "#333", marginBottom: 12 }}>Nenhuma daily criada ainda.</p>
+          <Link href="/quests/new" style={{
+            fontSize: 11, color: "#f59e0b", fontWeight: 700, textDecoration: "none",
+            padding: "7px 14px", borderRadius: 6,
+            border: "1px solid rgba(245,158,11,0.2)", background: "rgba(245,158,11,0.06)",
+          }}>
+            + Criar primeira daily
+          </Link>
+        </div>
+      ) : null}
 
-      {/* ── Character card ────────────────────────────── */}
-      <div style={{ background: "#111", border: "1px solid #1c1c1c", borderRadius: 14, padding: "22px 24px", marginBottom: 28, position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: -50, right: -50, width: 180, height: 180, borderRadius: "50%", background: `radial-gradient(circle, ${charClass.color}07 0%, transparent 70%)`, pointerEvents: "none" }} />
-
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 18, flexWrap: "wrap" }}>
-          {/* Avatar */}
-          <div style={{ width: 60, height: 60, borderRadius: "50%", flexShrink: 0, background: `${charClass.color}10`, border: `2px solid ${charClass.color}35`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, animation: "glow-pulse 3s ease-in-out infinite" }}>⚔</div>
-
-          {/* Info */}
-          <div style={{ flex: 1, minWidth: 180 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
-              <EditableName name={character?.name ?? "Aventureiro"} />
-              <span style={{ fontSize: 11, padding: "3px 9px", borderRadius: 6, background: `${charClass.color}10`, border: `1px solid ${charClass.color}28`, color: charClass.color, fontWeight: 700, letterSpacing: 1 }}>
-                Lv. {charLevel}
-              </span>
-              {/* RANK BADGE */}
-              {charClass.name === "Ascendente" ? (
-                <span style={{
-                  display: "inline-flex", alignItems: "center", gap: 5,
-                  padding: "5px 13px", borderRadius: 8, whiteSpace: "nowrap",
-                  background: "linear-gradient(90deg, #e879f918, #f59e0b18, #60a5fa18, #e879f918)",
-                  backgroundSize: "300% 100%",
-                  border: "1.5px solid transparent",
-                  backgroundClip: "padding-box",
-                  outline: "1.5px solid transparent",
-                  boxShadow: "0 0 20px #e879f966, 0 0 40px #f59e0b44",
-                  color: "#f0e6ff",
-                  fontSize: 12, fontWeight: 900, letterSpacing: 2,
-                  textTransform: "uppercase",
-                  textShadow: "0 0 12px #e879f9, 0 0 24px #f59e0b88",
-                  animation: "ascendente-pulse 3s ease-in-out infinite",
-                  ["--rank-color" as string]: "#e879f966",
-                  ["--rank-color-faint" as string]: "#e879f922",
-                }}>
-                  {RANK_ICONS["Ascendente"]} ASCENDENTE
-                </span>
-              ) : charClass.name === "Monarca" ? (
-                <span style={{
-                  display: "inline-flex", alignItems: "center", gap: 5,
-                  padding: "5px 12px", borderRadius: 8, whiteSpace: "nowrap",
-                  background: `${charClass.color}18`,
-                  border: `2px solid ${charClass.color}70`,
-                  color: charClass.color,
-                  fontSize: 12, fontWeight: 900, letterSpacing: 2,
-                  textTransform: "uppercase",
-                  textShadow: `0 0 14px ${charClass.color}cc`,
-                  animation: "rank-intense 2s ease-in-out infinite",
-                  ["--rank-color" as string]: `${charClass.color}80`,
-                  ["--rank-color-faint" as string]: `${charClass.color}25`,
-                }}>
-                  {RANK_ICONS["Monarca"]} MONARCA
-                </span>
-              ) : charClass.name === "Nacional" ? (
-                <span style={{
-                  display: "inline-flex", alignItems: "center", gap: 5,
-                  padding: "5px 12px", borderRadius: 8, whiteSpace: "nowrap",
-                  background: `${charClass.color}15`,
-                  border: `2px solid ${charClass.color}60`,
-                  color: charClass.color,
-                  fontSize: 12, fontWeight: 900, letterSpacing: 2,
-                  textTransform: "uppercase",
-                  textShadow: `0 0 12px ${charClass.color}aa`,
-                  animation: "rank-intense 2.5s ease-in-out infinite",
-                  ["--rank-color" as string]: `${charClass.color}70`,
-                  ["--rank-color-faint" as string]: `${charClass.color}20`,
-                }}>
-                  {RANK_ICONS["Nacional"]} NACIONAL
-                </span>
-              ) : (
-                <span style={{
-                  display: "inline-flex", alignItems: "center", gap: 4,
-                  padding: "4px 10px", borderRadius: 6, whiteSpace: "nowrap",
-                  background: `${charClass.color}12`,
-                  border: `1.5px solid ${charClass.color}${charClass.minLevel >= 20 ? "55" : "35"}`,
-                  color: charClass.color,
-                  fontSize: charClass.minLevel >= 20 ? 13 : 12,
-                  fontWeight: 900, letterSpacing: 2,
-                  textShadow: `0 0 8px ${charClass.color}80`,
-                  boxShadow: charClass.minLevel >= 20
-                    ? `0 0 14px ${charClass.color}40, inset 0 0 6px ${charClass.color}10`
-                    : `0 0 4px ${charClass.color}18`,
-                  animation: charClass.minLevel >= 20 ? "rank-glow 2s ease-in-out infinite" : undefined,
-                  ["--rank-color" as string]: `${charClass.color}55`,
-                  ["--rank-color-faint" as string]: `${charClass.color}15`,
-                }}>
-                  {RANK_ICONS[charClass.name]} {charClass.name}
-                </span>
-              )}
-              {streak > 0 && (
-                <span style={{ fontSize: 11, padding: "3px 9px", borderRadius: 20, background: `${streakColor(streak)}10`, border: `1px solid ${streakColor(streak)}30`, color: streakColor(streak), fontWeight: 700, display: "flex", alignItems: "center", gap: 4, animation: streak >= 7 ? "glow-pulse 2s ease-in-out infinite" : undefined }}>
-                  <Flame size={10} /> {streak} dia{streak !== 1 ? "s" : ""}
-                </span>
-              )}
-            </div>
-            <div style={{ maxWidth: 340 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5, fontSize: 11 }}>
-                <span style={{ color: "#444", display: "flex", alignItems: "center", gap: 4 }}><Heart size={10} color={hpColor} /> HP</span>
-                <span style={{ color: hpColor, fontWeight: 600 }}>{hp} / {maxHp}</span>
+      {/* ── Epics ─────────────────────────────────────── */}
+      {epics.length > 0 && (
+        <Section label="Epics" count={epics.length} accent="#f59e0b">
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {epics.map((q, i) => (
+              <div key={q.id} className="animate-slide-right" style={{ animationDelay: `${i * 0.04}s`, opacity: 0 }}>
+                <QuestCard quest={q} />
               </div>
-              <StatBar current={hp} max={maxHp} color={hpColor} height={7} />
-              {/* Daily completion rate */}
-              {totalDailiesCount > 0 && (
-                <div style={{ marginTop: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 11 }}>
-                    <span style={{ color: "#333", display: "flex", alignItems: "center", gap: 4 }}>⚡ Dailies hoje</span>
-                    <span style={{ color: completedToday === totalDailiesCount ? "#22c55e" : "#444", fontWeight: 600 }}>
-                      {completedToday}/{totalDailiesCount}
-                    </span>
-                  </div>
-                  <StatBar current={completedToday} max={totalDailiesCount} color={completedToday === totalDailiesCount ? "#22c55e" : "#22d3ee"} height={4} />
-                </div>
-              )}
+            ))}
+          </div>
+        </Section>
+      )}
 
-              {/* Rest feedback */}
-              {restRegen > 0 ? (
-                <div style={{ fontSize: 10, color: "#22c55e", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
-                  💤 Descansou · +{restRegen} HP recuperado
-                </div>
-              ) : character?.sleepAt ? (
-                <div style={{ fontSize: 10, color: "#22d3ee", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
-                  💤 Dormindo…
-                </div>
-              ) : hpPct <= 25 ? (
-                <div style={{ fontSize: 10, color: "#ef4444", marginTop: 4 }}>⚠ HP crítico — durma para recuperar</div>
-              ) : hp < maxHp ? (
-                <div style={{ fontSize: 10, color: "#333", marginTop: 4 }}>
-                  Durma para recuperar HP
-                </div>
-              ) : null}
+      {/* ── Bosses ────────────────────────────────────── */}
+      {bosses.length > 0 && (
+        <Section label="Boss Quests" count={bosses.length} accent="#ef4444">
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {bosses.map((q, i) => (
+              <div key={q.id} className="animate-slide-right" style={{ animationDelay: `${i * 0.04}s`, opacity: 0 }}>
+                <QuestCard quest={q} />
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* ── Character card ──────────────────────────── */}
+      <Section label="Personagem">
+        <div style={{
+          background: "#111", border: "1px solid #1c1c1c", borderRadius: 14,
+          overflow: "hidden",
+        }}>
+          {/* ── Identity band ── */}
+          <div style={{
+            padding: "22px 24px 20px",
+            background: `linear-gradient(135deg, ${charClass.color}0a 0%, transparent 55%)`,
+            borderBottom: "1px solid #171717",
+            display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap",
+            position: "relative", overflow: "hidden",
+          }}>
+            {/* Background orb */}
+            <div style={{
+              position: "absolute", top: -60, right: -60, width: 200, height: 200,
+              borderRadius: "50%",
+              background: `radial-gradient(circle, ${charClass.color}07 0%, transparent 65%)`,
+              pointerEvents: "none",
+            }} />
+
+            {/* Avatar with level badge */}
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              <div style={{
+                width: 68, height: 68, borderRadius: "50%",
+                background: `${charClass.color}10`,
+                border: `2px solid ${charClass.color}30`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 28,
+                boxShadow: `0 0 28px ${charClass.color}18, inset 0 0 14px ${charClass.color}06`,
+                animation: "glow-pulse 3s ease-in-out infinite",
+              }}>⚔</div>
+              {/* Level overlay badge */}
+              <div style={{
+                position: "absolute", bottom: -3, right: -3,
+                width: 24, height: 24, borderRadius: "50%",
+                background: charClass.color,
+                border: "2px solid #111",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 9, fontWeight: 900, color: "#000",
+                boxShadow: `0 0 8px ${charClass.color}60`,
+              }}>
+                {charLevel}
+              </div>
+            </div>
+
+            {/* Name + rank */}
+            <div style={{ flex: 1, minWidth: 140 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+                <EditableName name={character?.name ?? "Aventureiro"} />
+                {/* Rank badge */}
+                {charClass.name === "Ascendente" ? (
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", gap: 4,
+                    padding: "4px 10px", borderRadius: 6,
+                    background: "linear-gradient(90deg, #e879f918, #f59e0b18, #60a5fa18, #e879f918)",
+                    backgroundSize: "300% 100%",
+                    boxShadow: "0 0 16px #e879f966",
+                    color: "#f0e6ff", fontSize: 10, fontWeight: 900, letterSpacing: 2,
+                    textShadow: "0 0 10px #e879f9",
+                    animation: "ascendente-pulse 3s ease-in-out infinite",
+                    ["--rank-color" as string]: "#e879f966",
+                    ["--rank-color-faint" as string]: "#e879f922",
+                  }}>
+                    {RANK_ICONS["Ascendente"]} ASCENDENTE
+                  </span>
+                ) : charClass.name === "Monarca" ? (
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", gap: 4,
+                    padding: "4px 11px", borderRadius: 6,
+                    background: `${charClass.color}15`, border: `2px solid ${charClass.color}60`,
+                    color: charClass.color, fontSize: 10, fontWeight: 900, letterSpacing: 2,
+                    textShadow: `0 0 10px ${charClass.color}cc`,
+                    animation: "rank-intense 2s ease-in-out infinite",
+                    ["--rank-color" as string]: `${charClass.color}80`,
+                    ["--rank-color-faint" as string]: `${charClass.color}25`,
+                  }}>
+                    {RANK_ICONS["Monarca"]} MONARCA
+                  </span>
+                ) : (
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", gap: 4,
+                    padding: "3px 9px", borderRadius: 5,
+                    background: `${charClass.color}0e`,
+                    border: `1px solid ${charClass.color}${charClass.minLevel >= 20 ? "45" : "28"}`,
+                    color: charClass.color, fontSize: 10, fontWeight: 800, letterSpacing: 1.5,
+                    boxShadow: charClass.minLevel >= 20 ? `0 0 10px ${charClass.color}30` : undefined,
+                    animation: charClass.minLevel >= 20 ? "rank-glow 2s ease-in-out infinite" : undefined,
+                    ["--rank-color" as string]: `${charClass.color}55`,
+                    ["--rank-color-faint" as string]: `${charClass.color}15`,
+                  }}>
+                    {RANK_ICONS[charClass.name]} {charClass.name}
+                  </span>
+                )}
+                {streak > 0 && (
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", gap: 4,
+                    fontSize: 10, padding: "3px 9px", borderRadius: 20,
+                    background: `${streakColor(streak)}0d`, border: `1px solid ${streakColor(streak)}28`,
+                    color: streakColor(streak), fontWeight: 700,
+                    animation: streak >= 7 ? "glow-pulse 2.5s ease-in-out infinite" : undefined,
+                  }}>
+                    <Flame size={10} /> {streak}d
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: 11, color: "#383838" }}>
+                Nível {charLevel} · {charClass.name}
+              </div>
+            </div>
+
+            {/* Total XP */}
+            <div style={{ textAlign: "right", flexShrink: 0 }}>
+              <div style={{ fontSize: 9, color: "#2a2a2a", letterSpacing: 2, marginBottom: 3 }}>XP TOTAL</div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: "#f59e0b", lineHeight: 1 }}>
+                {totalXP.toLocaleString()}
+              </div>
             </div>
           </div>
 
-          {/* Quick stats */}
-          <div style={{ display: "flex", gap: 20, alignItems: "center", flexShrink: 0 }}>
+          {/* ── HP ── */}
+          <div style={{ padding: "18px 24px", borderBottom: "1px solid #171717" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <span style={{ fontSize: 10, color: "#444", display: "flex", alignItems: "center", gap: 5 }}>
+                <Heart size={11} color={hpColor} fill={hpPct <= 25 ? hpColor : "none"} />
+                PONTOS DE VIDA
+              </span>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                <span style={{ fontSize: 18, fontWeight: 900, color: hpColor, lineHeight: 1 }}>{hp}</span>
+                <span style={{ fontSize: 11, color: "#2e2e2e" }}>/ {maxHp}</span>
+                <span style={{ fontSize: 10, color: "#2e2e2e", marginLeft: 4 }}>({hpPct}%)</span>
+              </div>
+            </div>
+            <div style={{ height: 10, background: "#181818", borderRadius: 6, overflow: "hidden", position: "relative" }}>
+              <div style={{
+                height: "100%", width: `${hpPct}%`,
+                background: `linear-gradient(90deg, ${hpColor}88, ${hpColor})`,
+                borderRadius: 6,
+                transition: "width 0.7s ease",
+                boxShadow: `0 0 12px ${hpColor}50`,
+              }} />
+              {/* Tick marks every 25% */}
+              {[25, 50, 75].map(pct => (
+                <div key={pct} style={{
+                  position: "absolute", top: 0, bottom: 0,
+                  left: `${pct}%`, width: 1,
+                  background: "rgba(0,0,0,0.4)",
+                }} />
+              ))}
+            </div>
+            {restRegen > 0 ? (
+              <div style={{ fontSize: 10, color: "#22c55e", marginTop: 6, display: "flex", alignItems: "center", gap: 5 }}>
+                <span>💤</span> Descansou · <strong>+{restRegen} HP recuperado</strong>
+              </div>
+            ) : character?.sleepAt ? (
+              <div style={{ fontSize: 10, color: "#22d3ee", marginTop: 6 }}>💤 Dormindo…</div>
+            ) : hpPct <= 25 ? (
+              <div style={{ fontSize: 10, color: "#ef4444", marginTop: 6 }}>⚠ HP crítico — durma para recuperar</div>
+            ) : hp < maxHp ? (
+              <div style={{ fontSize: 10, color: "#2e2e2e", marginTop: 6 }}>Durma para recuperar HP</div>
+            ) : (
+              <div style={{ fontSize: 10, color: "#22c55e", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
+                ✓ HP completo
+              </div>
+            )}
+          </div>
+
+          {/* ── Stats grid ── */}
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
+            borderBottom: "1px solid #171717",
+          }}>
             {[
-              { v: totalXP.toLocaleString(), l: "XP TOTAL",  c: "#f59e0b" },
-              { v: dailies.length,            l: "DAILIES",   c: "#22d3ee" },
-              { v: epics.length,              l: "EPICS",     c: "#c084fc" },
-              ...(bosses.length > 0 ? [{ v: bosses.length, l: "BOSS", c: "#ef4444" }] : []),
-            ].map((s) => (
-              <div key={s.l} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 20, fontWeight: 800, color: s.c }}>{s.v}</div>
-                <div style={{ fontSize: 9, color: "#3a3a3a", marginTop: 2, letterSpacing: 1 }}>{s.l}</div>
+              { value: totalXP.toLocaleString(), label: "XP Total",  color: "#f59e0b" },
+              { value: charLevel,                label: "Nível",      color: charClass.color },
+              { value: streak > 0 ? `${streak}🔥` : "—", label: "Streak", color: streakColor(streak) },
+              { value: dailies.length + epics.length + bosses.length, label: "Quests ativas", color: "#22d3ee" },
+            ].map((s, i) => (
+              <div key={s.label} style={{
+                padding: "14px 10px", textAlign: "center",
+                borderRight: i < 3 ? "1px solid #171717" : "none",
+                background: "transparent",
+              }}>
+                <div style={{ fontSize: 20, fontWeight: 900, color: s.color, lineHeight: 1, marginBottom: 4 }}>
+                  {s.value}
+                </div>
+                <div style={{ fontSize: 9, color: "#2e2e2e", letterSpacing: 0.5 }}>{s.label}</div>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Attribute pills */}
-        <div style={{ display: "flex", gap: 6, marginTop: 16, flexWrap: "wrap" }}>
-          {allAttrs.map((attr) => {
-            const cls   = getClass(ATTR_CLASSES[attr.type] || [], attr.level);
-            const color = ATTR_COLORS[attr.type];
-            return (
-              <span key={attr.type} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 20, background: `${color}07`, border: `1px solid ${color}18`, fontSize: 10 }}>
-                <span style={{ color, fontWeight: 700 }}>{attr.type}</span>
-                <span style={{ color: "#555" }}>{cls.name}</span>
-                <span style={{ color: "#2e2e2e" }}>Lv.{attr.level}</span>
-              </span>
-            );
-          })}
-        </div>
+          {/* ── Attributes grid ── */}
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(5, 1fr)",
+            borderBottom: "1px solid #171717",
+          }}>
+            {allAttrs.map((attr, i) => {
+              const color   = ATTR_COLORS[attr.type];
+              const cls     = getClass(ATTR_CLASSES[attr.type] || [], attr.level);
+              const { progress } = getLevelInfo(attr.xp);
+              const EMOJI: Record<string, string> = { FRC:"💪", INT:"⚡", CAR:"🗣", DES:"🎯", SAB:"📖" };
+              return (
+                <div key={attr.type} style={{
+                  padding: "14px 8px 12px",
+                  borderRight: i < 4 ? "1px solid #171717" : "none",
+                  textAlign: "center",
+                  background: `linear-gradient(180deg, ${color}04 0%, transparent 100%)`,
+                }}>
+                  <div style={{ fontSize: 16, marginBottom: 4 }}>{EMOJI[attr.type]}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color, letterSpacing: 0.5, marginBottom: 2 }}>
+                    {attr.type}
+                  </div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color, lineHeight: 1, marginBottom: 2 }}>
+                    {attr.level}
+                  </div>
+                  <div style={{ fontSize: 8, color: "#3a3a3a", marginBottom: 7, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {cls.name}
+                  </div>
+                  {/* Mini XP bar */}
+                  <div style={{ height: 3, background: "#1e1e1e", borderRadius: 2, overflow: "hidden" }}>
+                    <div style={{
+                      height: "100%", width: `${progress}%`,
+                      background: `linear-gradient(90deg, ${color}66, ${color})`,
+                      borderRadius: 2,
+                      transition: "width 0.5s ease",
+                    }} />
+                  </div>
+                  <div style={{ fontSize: 8, color: "#252525", marginTop: 3 }}>{progress}%</div>
+                </div>
+              );
+            })}
+          </div>
 
-        {/* Actions */}
-        <div style={{ display: "flex", gap: 8, marginTop: 16, paddingTop: 16, borderTop: "1px solid #161616", flexWrap: "wrap" }}>
-          <SleepButton sleepAt={character?.sleepAt ?? null} />
-          <form action={resetDailies}>
-            <button type="submit" style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 7, border: "1px solid #222", background: "#0d0d0d", color: "#555", fontSize: 11, cursor: "pointer", fontFamily: "var(--font-mono)" }}>
-              <RefreshCw size={11} /> Reset Dailies
-            </button>
-          </form>
-          <ResetModal />
+          {/* ── Actions ── */}
+          <div style={{ padding: "14px 20px", display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <SleepButton sleepAt={character?.sleepAt ?? null} />
+            <form action={resetDailies}>
+              <button type="submit" style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "7px 12px", borderRadius: 7,
+                border: "1px solid #1e1e1e", background: "#0d0d0d",
+                color: "#444", fontSize: 11, cursor: "pointer", fontFamily: "var(--font-mono)",
+                transition: "color 0.15s, border-color 0.15s",
+              }}>
+                <RefreshCw size={11} /> Reset Dailies
+              </button>
+            </form>
+            <ResetModal />
+          </div>
         </div>
-      </div>
+      </Section>
 
-      {/* ── XP Semanal ───────────────────────────────── */}
-      <Section label="XP esta semana">
+      {/* ── Progress ──────────────────────────────────── */}
+      <Section label="Progresso" icon={<TrendingUp size={12} color="#555" />}>
+        {/* XP semanal */}
         {hasXP ? (
           <XPChart data={weeklyXP} />
         ) : (
-          <div style={{ padding: "24px 0", textAlign: "center", fontSize: 12, color: "#2e2e2e" }}>
-            Nenhum XP registrado ainda — complete quests para ver o gráfico.
+          <div style={{
+            background: "#0f0f0f", border: "1px solid #1a1a1a", borderRadius: 12,
+            padding: "32px 20px", textAlign: "center",
+          }}>
+            <div style={{ fontSize: 22, marginBottom: 8, opacity: 0.2 }}>📊</div>
+            <div style={{ fontSize: 11, color: "#252525" }}>Complete quests para ver o gráfico semanal.</div>
           </div>
         )}
-      </Section>
 
-      {/* ── Calendário de atividade ───────────────────── */}
-      <Section label="Atividade">
-        <div style={{ background: "#0d0d0d", border: "1px solid #181818", borderRadius: 10, padding: "18px 20px" }}>
+        {/* Calendário de atividade */}
+        <div style={{
+          marginTop: 14,
+          background: "#0f0f0f", border: "1px solid #1a1a1a", borderRadius: 12,
+          padding: "20px 20px 16px",
+          overflow: "hidden",
+        }}>
           <ActivityCalendar data={activity.data} totalXP={activity.totalXP} />
         </div>
       </Section>
 
-      {/* ── Atributos ────────────────────────────────── */}
+      {/* ── Atributos ─────────────────────────────────── */}
       <Section label="Atributos">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 8 }}>
           {allAttrs.map((attr, i) => (
-            <div key={attr.type} className="animate-float-in" style={{ animationDelay: `${i * 0.07}s`, opacity: 0 }}>
+            <div key={attr.type} className="animate-float-in" style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
               <AttributeCard type={attr.type} xp={attr.xp} level={attr.level} />
             </div>
           ))}
         </div>
       </Section>
 
-      {/* ── Quests ativas ────────────────────────────── */}
-      {dailies.length > 0 && (
-        <Section label="Dailies ativas">
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {dailies.map((q, i) => (
-              <div key={q.id} className="animate-slide-right" style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}>
-                <QuestCard quest={q} />
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {epics.length > 0 && (
-        <Section label="Epic Quests ativas">
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {epics.map((q, i) => (
-              <div key={q.id} className="animate-slide-right" style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}>
-                <QuestCard quest={q} />
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {bosses.length > 0 && (
-        <Section label="Boss Quests ativas">
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {bosses.map((q, i) => (
-              <div key={q.id} className="animate-slide-right" style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}>
-                <QuestCard quest={q} />
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* ── Atividade recente ────────────────────────── */}
+      {/* ── Atividade recente ─────────────────────────── */}
       {recentLogs.length > 0 && (
         <Section label="Atividade recente">
-          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {recentLogs.map((log, i) => {
               const ok = log.action === "COMPLETED";
               return (
-                <div key={log.id} className="animate-float-in" style={{ animationDelay: `${i * 0.04}s`, opacity: 0, display: "flex", alignItems: "center", gap: 10, padding: "9px 14px", background: "#111", border: `1px solid ${ok ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)"}`, borderRadius: 8, fontSize: 12 }}>
-                  <span style={{ color: ok ? "#22c55e" : "#ef4444", fontWeight: 700, minWidth: 14 }}>{ok ? "✓" : "✗"}</span>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: ATTR_COLORS[log.quest.attribute], minWidth: 28, letterSpacing: 1 }}>{log.quest.attribute}</span>
-                  <span style={{ flex: 1, color: "#bbb" }}>{log.quest.title}</span>
-                  {log.xpChange  > 0 && <span style={{ color: "#f59e0b", fontSize: 11 }}>+{log.xpChange} XP</span>}
+                <div key={log.id} className="animate-float-in" style={{
+                  animationDelay: `${i * 0.03}s`, opacity: 0,
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "8px 12px",
+                  background: "#111",
+                  border: `1px solid ${ok ? "rgba(34,197,94,0.07)" : "rgba(239,68,68,0.07)"}`,
+                  borderLeft: `2px solid ${ok ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.4)"}`,
+                  borderRadius: 7, fontSize: 11,
+                }}>
+                  <span style={{ color: ok ? "#22c55e" : "#ef4444", fontWeight: 700, minWidth: 12 }}>{ok ? "✓" : "✗"}</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: ATTR_COLORS[log.quest.attribute], minWidth: 26, letterSpacing: 1 }}>{log.quest.attribute}</span>
+                  <span style={{ flex: 1, color: "#999" }}>{log.quest.title}</span>
+                  {log.xpChange  > 0 && <span style={{ color: "#f59e0b", fontSize: 10 }}>+{log.xpChange} XP</span>}
                   {log.hpChange !== 0 && (
-                    <span style={{ color: log.hpChange > 0 ? "#22c55e" : "#ef4444", fontSize: 11 }}>
+                    <span style={{ color: log.hpChange > 0 ? "#22c55e" : "#ef4444", fontSize: 10 }}>
                       {log.hpChange > 0 ? "+" : ""}{log.hpChange} HP
                     </span>
                   )}
-                  <span style={{ color: "#222", fontSize: 10 }}>{new Date(log.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
+                  <span style={{ color: "#1e1e1e", fontSize: 9 }}>{new Date(log.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
                 </div>
               );
             })}
@@ -478,12 +594,33 @@ export default async function Dashboard() {
   );
 }
 
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
+function Section({
+  label, children, count, accent, icon,
+}: {
+  label: string;
+  children: React.ReactNode;
+  count?: number;
+  accent?: string;
+  icon?: React.ReactNode;
+}) {
   return (
-    <div style={{ marginBottom: 32 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-        <span style={{ fontSize: 10, fontWeight: 700, color: "#333", letterSpacing: 2, textTransform: "uppercase" }}>{label}</span>
-        <div style={{ flex: 1, height: 1, background: "#161616" }} />
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        {icon}
+        <span style={{ fontSize: 10, fontWeight: 700, color: "#2e2e2e", letterSpacing: 2, textTransform: "uppercase" }}>
+          {label}
+        </span>
+        {count !== undefined && (
+          <span style={{
+            fontSize: 9, padding: "1px 7px", borderRadius: 10, fontWeight: 700,
+            background: accent ? `${accent}0d` : "#141414",
+            border: `1px solid ${accent ? accent + "20" : "#1e1e1e"}`,
+            color: accent ?? "#444",
+          }}>
+            {count}
+          </span>
+        )}
+        <div style={{ flex: 1, height: 1, background: "#141414" }} />
       </div>
       {children}
     </div>

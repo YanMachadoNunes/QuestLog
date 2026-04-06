@@ -32,7 +32,7 @@ html, body {
 /* ─── KEYFRAMES ─────────────────────────────────────────────────── */
 
 @keyframes float-in {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -42,18 +42,13 @@ html, body {
 }
 
 @keyframes slide-right {
-  from { opacity: 0; transform: translateX(-12px); }
+  from { opacity: 0; transform: translateX(-10px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes glow-pulse {
   0%, 100% { box-shadow: 0 0 6px rgba(245,158,11,0.2); }
   50%       { box-shadow: 0 0 22px rgba(245,158,11,0.5), 0 0 44px rgba(245,158,11,0.12); }
-}
-
-@keyframes ring-expand {
-  0%   { transform: scale(1);   opacity: 0.8; }
-  100% { transform: scale(2.2); opacity: 0; }
 }
 
 @keyframes hp-shake {
@@ -106,11 +101,6 @@ html, body {
   to   { opacity: 1; transform: translateX(0); }
 }
 
-@keyframes dash-draw {
-  from { stroke-dashoffset: 400; }
-  to   { stroke-dashoffset: 0; }
-}
-
 @keyframes rank-glow {
   0%, 100% { box-shadow: 0 0 8px var(--rank-color), inset 0 0 6px var(--rank-color-faint); }
   50%       { box-shadow: 0 0 22px var(--rank-color), 0 0 40px var(--rank-color-faint), inset 0 0 10px var(--rank-color-faint); }
@@ -132,38 +122,33 @@ html, body {
   66%       { box-shadow: 0 0 30px #f59e0b88, 0 0 60px #60a5fa55, 0 0 80px #e879f933; transform: scale(1.03); }
 }
 
-@keyframes spine-grow {
-  from { transform: translateX(-0.5px) scaleY(0); }
-  to   { transform: translateX(-0.5px) scaleY(1); }
-}
-
 /* ─── QUEST CARD ANIMATIONS ──────────────────────────────────────── */
 
 @keyframes card-ok {
   0%   { transform: scale(1);    box-shadow: none; }
-  25%  { transform: scale(1.02); box-shadow: 0 0 0 2px rgba(34,197,94,0.5), 0 0 28px rgba(34,197,94,0.25); }
-  60%  { transform: scale(0.98); box-shadow: 0 0 0 1px rgba(34,197,94,0.3); }
+  25%  { transform: scale(1.015); box-shadow: 0 0 0 2px rgba(34,197,94,0.4), 0 0 20px rgba(34,197,94,0.15); }
+  60%  { transform: scale(0.99); box-shadow: 0 0 0 1px rgba(34,197,94,0.2); }
   100% { transform: scale(1);    box-shadow: none; }
 }
 
 @keyframes card-fail {
   0%   { transform: translateX(0);  box-shadow: none; }
-  15%  { transform: translateX(-7px); box-shadow: 0 0 0 2px rgba(239,68,68,0.5), 0 0 24px rgba(239,68,68,0.25); }
-  35%  { transform: translateX(6px); }
-  55%  { transform: translateX(-4px); }
-  75%  { transform: translateX(3px); }
+  15%  { transform: translateX(-6px); box-shadow: 0 0 0 2px rgba(239,68,68,0.4), 0 0 16px rgba(239,68,68,0.15); }
+  35%  { transform: translateX(5px); }
+  55%  { transform: translateX(-3px); }
+  75%  { transform: translateX(2px); }
   100% { transform: translateX(0);  box-shadow: none; }
 }
 
 @keyframes btn-ok {
   0%   { transform: scale(1);    box-shadow: none; }
-  40%  { transform: scale(1.12); box-shadow: 0 0 16px rgba(34,197,94,0.5); }
+  40%  { transform: scale(1.1); box-shadow: 0 0 12px rgba(34,197,94,0.5); }
   100% { transform: scale(1);    box-shadow: none; }
 }
 
 @keyframes btn-fail {
   0%   { transform: scale(1);    box-shadow: none; }
-  40%  { transform: scale(1.12); box-shadow: 0 0 16px rgba(239,68,68,0.5); }
+  40%  { transform: scale(1.1); box-shadow: 0 0 12px rgba(239,68,68,0.5); }
   100% { transform: scale(1);    box-shadow: none; }
 }
 
@@ -172,11 +157,17 @@ html, body {
   100% { opacity: 0; }
 }
 
+@keyframes check-pop {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 /* ─── DUE DATE + ACHIEVEMENT ANIMATIONS ─────────────────────────── */
 
 @keyframes urgent-pulse {
-  0%, 100% { border-color: rgba(245,158,11,0.35); box-shadow: none; }
-  50%       { border-color: rgba(245,158,11,0.75); box-shadow: 0 0 10px rgba(245,158,11,0.18); }
+  0%, 100% { border-color: rgba(245,158,11,0.25); }
+  50%       { border-color: rgba(245,158,11,0.6); box-shadow: 0 0 8px rgba(245,158,11,0.1); }
 }
 
 @keyframes achievement-in {
@@ -190,8 +181,8 @@ html, body {
 }
 
 @keyframes boss-pulse {
-  0%, 100% { border-color: rgba(239,68,68,0.2); box-shadow: 0 0 12px rgba(239,68,68,0.04); }
-  50%       { border-color: rgba(239,68,68,0.45); box-shadow: 0 0 30px rgba(239,68,68,0.08), 0 0 60px rgba(239,68,68,0.03); }
+  0%, 100% { border-color: rgba(239,68,68,0.15); box-shadow: 0 0 8px rgba(239,68,68,0.03); }
+  50%       { border-color: rgba(239,68,68,0.35); box-shadow: 0 0 20px rgba(239,68,68,0.07); }
 }
 
 @keyframes xp-float {
@@ -205,42 +196,76 @@ html, body {
   100% { background-position: -200% 0; }
 }
 
-/* ─── RESPONSIVE ────────────────────────────────────────────────── */
+/* ─── LAYOUT ─────────────────────────────────────────────────────── */
+
+.sidebar-desktop {
+  width: 220px;
+  flex-shrink: 0;
+  background: #0d0d0d;
+  border-right: 1px solid #181818;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.sidebar-mobile {
+  display: none;
+}
+
+.mobile-menu-btn {
+  display: none;
+}
 
 .shell-main {
-  padding: 40px 48px 120px;
+  margin-left: 220px;
+  padding: 36px 44px 80px;
   min-height: 100vh;
-  max-width: 1280px;
-  margin: 0 auto;
+  flex: 1;
+  max-width: calc(900px + 220px);
+  width: 100%;
 }
 
-.menu-toggle {
-  position: fixed;
-  bottom: 40px;
-  left: 40px;
-  z-index: 200;
-}
-
-.mute-btn {
-  position: fixed;
-  bottom: 40px;
-  right: 40px;
-  z-index: 200;
-}
-
-@media (max-width: 640px) {
-  .shell-main {
-    padding: 24px 16px 100px;
+@media (max-width: 768px) {
+  .sidebar-desktop {
+    display: none;
   }
 
-  .menu-toggle {
+  .sidebar-mobile {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 220px;
+    background: #0d0d0d;
+    border-right: 1px solid #1a1a1a;
+    z-index: 200;
+    transition: transform 0.25s ease;
+    overflow-y: auto;
+  }
+
+  .mobile-menu-btn {
+    display: flex;
+    position: fixed;
     bottom: 20px;
     left: 16px;
+    z-index: 250;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #111;
+    border: 1px solid #222;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
   }
 
-  .mute-btn {
-    bottom: 20px;
-    right: 16px;
+  .shell-main {
+    margin-left: 0;
+    padding: 24px 16px 80px;
   }
 }
 
@@ -259,7 +284,7 @@ html, body {
   flex-shrink: 0;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 580px) {
   .quest-card-row {
     flex-wrap: wrap;
   }
