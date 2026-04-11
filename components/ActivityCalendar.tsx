@@ -75,7 +75,7 @@ export default function ActivityCalendar({ data, totalXP }: Props) {
       {/* ── Header ── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
         <div>
-          <div style={{ fontSize: 9, color: "#2a2a2a", letterSpacing: 2, marginBottom: 4 }}>ÚLTIMAS 16 SEMANAS</div>
+          <div style={{ fontSize: 9, color: "#444", letterSpacing: 2, marginBottom: 4 }}>ÚLTIMAS 16 SEMANAS</div>
           <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
             {totalXP > 0 && (
               <span style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b" }}>
@@ -91,7 +91,7 @@ export default function ActivityCalendar({ data, totalXP }: Props) {
         </div>
         {bestXP > 0 && (
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 9, color: "#2a2a2a", letterSpacing: 2, marginBottom: 3 }}>MELHOR DIA</div>
+            <div style={{ fontSize: 9, color: "#444", letterSpacing: 2, marginBottom: 3 }}>MELHOR DIA</div>
             <div style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b" }}>+{bestXP.toLocaleString()} XP</div>
           </div>
         )}
@@ -102,7 +102,7 @@ export default function ActivityCalendar({ data, totalXP }: Props) {
         {weeks.map((_, wi) => {
           const ml = monthLabels.find((m) => m.weekIdx === wi);
           return (
-            <div key={wi} style={{ width: CELL + GAP, flexShrink: 0, fontSize: 8, color: "#333", letterSpacing: 0.5 }}>
+            <div key={wi} style={{ width: CELL + GAP, flexShrink: 0, fontSize: 8, color: "#444", letterSpacing: 0.5 }}>
               {ml ? ml.label : ""}
             </div>
           );
@@ -114,7 +114,7 @@ export default function ActivityCalendar({ data, totalXP }: Props) {
         {/* Day of week labels */}
         <div style={{ display: "flex", flexDirection: "column", gap: GAP, marginRight: GAP + 1 }}>
           {DAY_LABELS.map((l, i) => (
-            <div key={i} style={{ width: 12, height: CELL, fontSize: 8, color: "#2a2a2a", display: "flex", alignItems: "center" }}>
+            <div key={i} style={{ width: 12, height: CELL, fontSize: 8, color: "#3a3a3a", display: "flex", alignItems: "center" }}>
               {i % 2 === 1 ? l : ""}
             </div>
           ))}
@@ -169,7 +169,7 @@ export default function ActivityCalendar({ data, totalXP }: Props) {
 
       {/* ── Legend ── */}
       <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 12, justifyContent: "flex-end" }}>
-        <span style={{ fontSize: 8, color: "#2a2a2a", letterSpacing: 0.5 }}>Menos</span>
+        <span style={{ fontSize: 8, color: "#3a3a3a", letterSpacing: 0.5 }}>Menos</span>
         {[0, 30, 100, 200, 400].map((v) => (
           <div
             key={v}
@@ -180,7 +180,7 @@ export default function ActivityCalendar({ data, totalXP }: Props) {
             }}
           />
         ))}
-        <span style={{ fontSize: 8, color: "#2a2a2a", letterSpacing: 0.5 }}>Mais</span>
+        <span style={{ fontSize: 8, color: "#3a3a3a", letterSpacing: 0.5 }}>Mais</span>
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ import RankTheme from "@/components/RankTheme";
 import { autoFailDailies, resetDailies, checkRest } from "@/lib/actions";
 import {
   RefreshCw, Heart, Flame, Plus, Shield, Award, Star,
-  Globe, Crown, Sparkles, ChevronUp, Minus, CheckCircle2, Circle, TrendingUp,
+  Globe, Crown, Sparkles, ChevronUp, Minus, CheckCircle2, Circle, TrendingUp, Zap,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -81,7 +81,7 @@ function streakColor(n: number) {
   if (n >= 14) return "#ef4444";
   if (n >= 7)  return "#fb923c";
   if (n >= 3)  return "#f59e0b";
-  return "#555";
+  return "#6b7280";
 }
 
 export default async function Dashboard() {
@@ -104,7 +104,7 @@ export default async function Dashboard() {
   const charLevel = getCharacterLevel(allAttrs.map(a => a.level));
   const totalXP   = allAttrs.reduce((s, a) => s + a.xp, 0);
   const charClass = getClass(CHAR_CLASSES, charLevel);
-  const milestone = isMilestoneLevel(charLevel);
+  const charLevelInfo = getLevelInfo(totalXP);
   const dailies   = quests.filter(q => q.type === "DAILY");
   const epics     = quests.filter(q => q.type === "EPIC");
   const bosses    = quests.filter(q => q.type === "BOSS");
@@ -115,6 +115,7 @@ export default async function Dashboard() {
   const streak  = character?.streak ?? 0;
   const hasXP   = weeklyXP.some(d => d.total > 0);
   const todayLabel = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+  const dailiesPct = totalDailiesCount > 0 ? Math.round((completedToday / totalDailiesCount) * 100) : 0;
 
   return (
     <div className="animate-float-in">
@@ -123,8 +124,8 @@ export default async function Dashboard() {
       {/* ── Auto-fail banner ──────────────────────────── */}
       {failResult.failedCount > 0 && (
         <div style={{
-          background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.16)",
-          borderLeft: "3px solid rgba(239,68,68,0.5)",
+          background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)",
+          borderLeft: "3px solid #ef4444",
           borderRadius: 8, padding: "10px 16px", marginBottom: 20,
           display: "flex", alignItems: "center", gap: 10, fontSize: 12,
         }}>
@@ -133,7 +134,7 @@ export default async function Dashboard() {
             <span style={{ color: "#ef4444", fontWeight: 700 }}>
               {failResult.failedCount} {failResult.failedCount !== 1 ? "dailies falharam" : "daily falhou"} ontem
             </span>
-            <span style={{ color: "#444" }}>
+            <span style={{ color: "#555" }}>
               {failResult.hpLost > 0 && ` · -${failResult.hpLost} HP`}
               {failResult.streakBroken && " · streak resetado"}
             </span>
@@ -147,7 +148,7 @@ export default async function Dashboard() {
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#e5e5e5", letterSpacing: 0.3 }}>
             Hoje
           </h1>
-          <p style={{ margin: "3px 0 0", fontSize: 11, color: "#333", textTransform: "capitalize" }}>
+          <p style={{ margin: "3px 0 0", fontSize: 11, color: "#444", textTransform: "capitalize" }}>
             {todayLabel}
           </p>
         </div>
@@ -156,18 +157,18 @@ export default async function Dashboard() {
             <div style={{
               display: "flex", alignItems: "center", gap: 6,
               padding: "6px 12px", borderRadius: 20,
-              background: `${streakColor(streak)}0a`,
-              border: `1px solid ${streakColor(streak)}25`,
+              background: `${streakColor(streak)}10`,
+              border: `1px solid ${streakColor(streak)}30`,
               animation: streak >= 7 ? "glow-pulse 3s ease-in-out infinite" : undefined,
             }}>
-              <span style={{ fontSize: 14 }}>{streak >= 14 ? "🔥" : streak >= 7 ? "🔥" : streak >= 3 ? "⚡" : "✨"}</span>
+              <span style={{ fontSize: 14 }}>{streak >= 7 ? "🔥" : streak >= 3 ? "⚡" : "✨"}</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: streakColor(streak) }}>{streak}</span>
             </div>
           )}
           <Link href="/quests/new" style={{
             display: "flex", alignItems: "center", gap: 5, padding: "7px 12px",
-            borderRadius: 7, border: "1px solid rgba(245,158,11,0.2)",
-            background: "rgba(245,158,11,0.06)", color: "#f59e0b",
+            borderRadius: 7, border: "1px solid rgba(245,158,11,0.25)",
+            background: "rgba(245,158,11,0.08)", color: "#f59e0b",
             fontSize: 11, fontWeight: 700, textDecoration: "none",
             fontFamily: "var(--font-mono)", letterSpacing: 0.5,
           }}>
@@ -176,40 +177,64 @@ export default async function Dashboard() {
         </div>
       </div>
 
-      {/* ── Today progress bar ────────────────────────── */}
+      {/* ── Daily progress ────────────────────────────── */}
       {totalDailiesCount > 0 && (
         <div style={{
-          background: "#111", border: "1px solid #1c1c1c", borderRadius: 10,
-          padding: "14px 18px", marginBottom: 20,
-          display: "flex", alignItems: "center", gap: 14,
+          background: "#111", border: "1px solid #1e1e1e",
+          borderRadius: 12, padding: "16px 20px", marginBottom: 24,
         }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
-              <span style={{ fontSize: 11, color: "#444", display: "flex", alignItems: "center", gap: 5 }}>
-                <CheckCircle2 size={12} color={completedToday === totalDailiesCount ? "#22c55e" : "#333"} />
-                Dailies hoje
-              </span>
-              <span style={{
-                fontSize: 12, fontWeight: 700,
-                color: completedToday === totalDailiesCount ? "#22c55e" : "#555",
-              }}>
-                {completedToday} / {totalDailiesCount}
-              </span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+              <CheckCircle2
+                size={13}
+                color={completedToday === totalDailiesCount ? "#22c55e" : "#444"}
+                fill={completedToday === totalDailiesCount ? "#22c55e22" : "none"}
+              />
+              <span style={{ fontSize: 11, color: "#666", fontWeight: 600 }}>Dailies</span>
             </div>
-            <div style={{ height: 5, background: "#1a1a1a", borderRadius: 3, overflow: "hidden" }}>
-              <div style={{
-                height: "100%",
-                width: `${Math.round((completedToday / totalDailiesCount) * 100)}%`,
-                background: completedToday === totalDailiesCount
-                  ? "linear-gradient(90deg, #22c55e, #4ade80)"
-                  : "linear-gradient(90deg, #22d3ee, #60a5fa)",
-                borderRadius: 3,
-                transition: "width 0.5s ease",
-              }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {completedToday === totalDailiesCount && (
+                <span style={{ fontSize: 11, color: "#22c55e", fontWeight: 700 }}>Completo 🎉</span>
+              )}
+              <span style={{
+                fontSize: 13, fontWeight: 800,
+                color: completedToday === totalDailiesCount ? "#22c55e" : "#888",
+              }}>
+                {completedToday}<span style={{ fontSize: 10, color: "#444", fontWeight: 500 }}>/{totalDailiesCount}</span>
+              </span>
             </div>
           </div>
-          {completedToday === totalDailiesCount && (
-            <span style={{ fontSize: 18 }}>🎉</span>
+
+          {/* Progress bar */}
+          <div style={{ position: "relative", height: 8, background: "#1a1a1a", borderRadius: 4, overflow: "hidden" }}>
+            <div style={{
+              height: "100%",
+              width: `${dailiesPct}%`,
+              background: completedToday === totalDailiesCount
+                ? "linear-gradient(90deg, #22c55e, #4ade80)"
+                : "linear-gradient(90deg, #22d3ee, #60a5fa)",
+              borderRadius: 4,
+              transition: "width 0.6s ease",
+              boxShadow: completedToday === totalDailiesCount
+                ? "0 0 12px rgba(34,197,94,0.4)"
+                : "0 0 8px rgba(34,211,238,0.3)",
+            }} />
+          </div>
+
+          {/* Segment dots */}
+          {totalDailiesCount > 1 && (
+            <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
+              {Array.from({ length: totalDailiesCount }).map((_, i) => (
+                <div key={i} style={{
+                  width: 5, height: 5, borderRadius: "50%",
+                  background: i < completedToday
+                    ? (completedToday === totalDailiesCount ? "#22c55e" : "#22d3ee")
+                    : "#222",
+                  transition: "background 0.3s",
+                  boxShadow: i < completedToday ? "0 0 4px rgba(34,211,238,0.4)" : "none",
+                }} />
+              ))}
+            </div>
           )}
         </div>
       )}
@@ -227,15 +252,15 @@ export default async function Dashboard() {
         </Section>
       ) : totalDailiesCount === 0 ? (
         <div style={{
-          background: "#111", border: "1px solid #1c1c1c", borderRadius: 10,
+          background: "#111", border: "1px solid #1e1e1e", borderRadius: 10,
           padding: "28px 20px", marginBottom: 28, textAlign: "center",
         }}>
-          <Circle size={32} color="#1e1e1e" style={{ marginBottom: 10 }} />
-          <p style={{ fontSize: 12, color: "#333", marginBottom: 12 }}>Nenhuma daily criada ainda.</p>
+          <Circle size={32} color="#222" style={{ marginBottom: 10 }} />
+          <p style={{ fontSize: 12, color: "#444", marginBottom: 12 }}>Nenhuma daily criada ainda.</p>
           <Link href="/quests/new" style={{
             fontSize: 11, color: "#f59e0b", fontWeight: 700, textDecoration: "none",
             padding: "7px 14px", borderRadius: 6,
-            border: "1px solid rgba(245,158,11,0.2)", background: "rgba(245,158,11,0.06)",
+            border: "1px solid rgba(245,158,11,0.25)", background: "rgba(245,158,11,0.08)",
           }}>
             + Criar primeira daily
           </Link>
@@ -271,14 +296,14 @@ export default async function Dashboard() {
       {/* ── Character card ──────────────────────────── */}
       <Section label="Personagem">
         <div style={{
-          background: "#111", border: "1px solid #1c1c1c", borderRadius: 14,
+          background: "#111", border: "1px solid #1e1e1e", borderRadius: 14,
           overflow: "hidden",
         }}>
           {/* ── Identity band ── */}
           <div style={{
             padding: "22px 24px 20px",
-            background: `linear-gradient(135deg, ${charClass.color}0a 0%, transparent 55%)`,
-            borderBottom: "1px solid #171717",
+            background: `linear-gradient(135deg, ${charClass.color}0d 0%, transparent 60%)`,
+            borderBottom: "1px solid #1a1a1a",
             display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap",
             position: "relative", overflow: "hidden",
           }}>
@@ -286,7 +311,7 @@ export default async function Dashboard() {
             <div style={{
               position: "absolute", top: -60, right: -60, width: 200, height: 200,
               borderRadius: "50%",
-              background: `radial-gradient(circle, ${charClass.color}07 0%, transparent 65%)`,
+              background: `radial-gradient(circle, ${charClass.color}09 0%, transparent 65%)`,
               pointerEvents: "none",
             }} />
 
@@ -294,14 +319,13 @@ export default async function Dashboard() {
             <div style={{ position: "relative", flexShrink: 0 }}>
               <div style={{
                 width: 68, height: 68, borderRadius: "50%",
-                background: `${charClass.color}10`,
-                border: `2px solid ${charClass.color}30`,
+                background: `${charClass.color}12`,
+                border: `2px solid ${charClass.color}35`,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 28,
-                boxShadow: `0 0 28px ${charClass.color}18, inset 0 0 14px ${charClass.color}06`,
+                boxShadow: `0 0 28px ${charClass.color}20, inset 0 0 14px ${charClass.color}08`,
                 animation: "glow-pulse 3s ease-in-out infinite",
               }}>⚔</div>
-              {/* Level overlay badge */}
               <div style={{
                 position: "absolute", bottom: -3, right: -3,
                 width: 24, height: 24, borderRadius: "50%",
@@ -352,7 +376,7 @@ export default async function Dashboard() {
                   <span style={{
                     display: "inline-flex", alignItems: "center", gap: 4,
                     padding: "3px 9px", borderRadius: 5,
-                    background: `${charClass.color}0e`,
+                    background: `${charClass.color}10`,
                     border: `1px solid ${charClass.color}${charClass.minLevel >= 20 ? "45" : "28"}`,
                     color: charClass.color, fontSize: 10, fontWeight: 800, letterSpacing: 1.5,
                     boxShadow: charClass.minLevel >= 20 ? `0 0 10px ${charClass.color}30` : undefined,
@@ -367,7 +391,7 @@ export default async function Dashboard() {
                   <span style={{
                     display: "inline-flex", alignItems: "center", gap: 4,
                     fontSize: 10, padding: "3px 9px", borderRadius: 20,
-                    background: `${streakColor(streak)}0d`, border: `1px solid ${streakColor(streak)}28`,
+                    background: `${streakColor(streak)}10`, border: `1px solid ${streakColor(streak)}30`,
                     color: streakColor(streak), fontWeight: 700,
                     animation: streak >= 7 ? "glow-pulse 2.5s ease-in-out infinite" : undefined,
                   }}>
@@ -375,14 +399,14 @@ export default async function Dashboard() {
                   </span>
                 )}
               </div>
-              <div style={{ fontSize: 11, color: "#383838" }}>
+              <div style={{ fontSize: 11, color: "#484848" }}>
                 Nível {charLevel} · {charClass.name}
               </div>
             </div>
 
             {/* Total XP */}
             <div style={{ textAlign: "right", flexShrink: 0 }}>
-              <div style={{ fontSize: 9, color: "#2a2a2a", letterSpacing: 2, marginBottom: 3 }}>XP TOTAL</div>
+              <div style={{ fontSize: 9, color: "#444", letterSpacing: 2, marginBottom: 3 }}>XP TOTAL</div>
               <div style={{ fontSize: 20, fontWeight: 900, color: "#f59e0b", lineHeight: 1 }}>
                 {totalXP.toLocaleString()}
               </div>
@@ -390,80 +414,89 @@ export default async function Dashboard() {
           </div>
 
           {/* ── HP ── */}
-          <div style={{ padding: "18px 24px", borderBottom: "1px solid #171717" }}>
+          <div style={{ padding: "16px 24px", borderBottom: "1px solid #1a1a1a" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <span style={{ fontSize: 10, color: "#444", display: "flex", alignItems: "center", gap: 5 }}>
+              <span style={{ fontSize: 10, color: "#555", display: "flex", alignItems: "center", gap: 5 }}>
                 <Heart size={11} color={hpColor} fill={hpPct <= 25 ? hpColor : "none"} />
                 PONTOS DE VIDA
               </span>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
                 <span style={{ fontSize: 18, fontWeight: 900, color: hpColor, lineHeight: 1 }}>{hp}</span>
-                <span style={{ fontSize: 11, color: "#2e2e2e" }}>/ {maxHp}</span>
-                <span style={{ fontSize: 10, color: "#2e2e2e", marginLeft: 4 }}>({hpPct}%)</span>
+                <span style={{ fontSize: 11, color: "#444" }}>/ {maxHp}</span>
+                <span style={{ fontSize: 10, color: "#3a3a3a", marginLeft: 4 }}>({hpPct}%)</span>
               </div>
             </div>
             <div style={{ height: 10, background: "#181818", borderRadius: 6, overflow: "hidden", position: "relative" }}>
               <div style={{
                 height: "100%", width: `${hpPct}%`,
                 background: `linear-gradient(90deg, ${hpColor}88, ${hpColor})`,
-                borderRadius: 6,
-                transition: "width 0.7s ease",
+                borderRadius: 6, transition: "width 0.7s ease",
                 boxShadow: `0 0 12px ${hpColor}50`,
               }} />
-              {/* Tick marks every 25% */}
               {[25, 50, 75].map(pct => (
                 <div key={pct} style={{
                   position: "absolute", top: 0, bottom: 0,
-                  left: `${pct}%`, width: 1,
-                  background: "rgba(0,0,0,0.4)",
+                  left: `${pct}%`, width: 1, background: "rgba(0,0,0,0.4)",
                 }} />
               ))}
             </div>
-            {restRegen > 0 ? (
-              <div style={{ fontSize: 10, color: "#22c55e", marginTop: 6, display: "flex", alignItems: "center", gap: 5 }}>
-                <span>💤</span> Descansou · <strong>+{restRegen} HP recuperado</strong>
-              </div>
-            ) : character?.sleepAt ? (
-              <div style={{ fontSize: 10, color: "#22d3ee", marginTop: 6 }}>💤 Dormindo…</div>
-            ) : hpPct <= 25 ? (
-              <div style={{ fontSize: 10, color: "#ef4444", marginTop: 6 }}>⚠ HP crítico — durma para recuperar</div>
-            ) : hp < maxHp ? (
-              <div style={{ fontSize: 10, color: "#2e2e2e", marginTop: 6 }}>Durma para recuperar HP</div>
-            ) : (
-              <div style={{ fontSize: 10, color: "#22c55e", marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
-                ✓ HP completo
-              </div>
-            )}
+            <div style={{ marginTop: 6 }}>
+              {restRegen > 0 ? (
+                <span style={{ fontSize: 10, color: "#22c55e", display: "flex", alignItems: "center", gap: 5 }}>
+                  <span>💤</span> Descansou · <strong>+{restRegen} HP recuperado</strong>
+                </span>
+              ) : character?.sleepAt ? (
+                <span style={{ fontSize: 10, color: "#22d3ee" }}>💤 Dormindo…</span>
+              ) : hpPct <= 25 ? (
+                <span style={{ fontSize: 10, color: "#ef4444" }}>⚠ HP crítico — durma para recuperar</span>
+              ) : hp < maxHp ? (
+                <span style={{ fontSize: 10, color: "#3a3a3a" }}>Durma para recuperar HP</span>
+              ) : (
+                <span style={{ fontSize: 10, color: "#22c55e", display: "flex", alignItems: "center", gap: 4 }}>
+                  ✓ HP completo
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* ── Stats grid ── */}
-          <div style={{
-            display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
-            borderBottom: "1px solid #171717",
-          }}>
-            {[
-              { value: totalXP.toLocaleString(), label: "XP Total",  color: "#f59e0b" },
-              { value: charLevel,                label: "Nível",      color: charClass.color },
-              { value: streak > 0 ? `${streak}🔥` : "—", label: "Streak", color: streakColor(streak) },
-              { value: dailies.length + epics.length + bosses.length, label: "Quests ativas", color: "#22d3ee" },
-            ].map((s, i) => (
-              <div key={s.label} style={{
-                padding: "14px 10px", textAlign: "center",
-                borderRight: i < 3 ? "1px solid #171717" : "none",
-                background: "transparent",
-              }}>
-                <div style={{ fontSize: 20, fontWeight: 900, color: s.color, lineHeight: 1, marginBottom: 4 }}>
-                  {s.value}
-                </div>
-                <div style={{ fontSize: 9, color: "#2e2e2e", letterSpacing: 0.5 }}>{s.label}</div>
+          {/* ── XP progress to next level ── */}
+          <div style={{ padding: "14px 24px", borderBottom: "1px solid #1a1a1a" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
+              <span style={{ fontSize: 10, color: "#555", display: "flex", alignItems: "center", gap: 5 }}>
+                <Zap size={11} color="#f59e0b" />
+                PROGRESSÃO
+              </span>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b" }}>
+                  {charLevelInfo.currentXP.toLocaleString()}
+                </span>
+                <span style={{ fontSize: 10, color: "#444" }}>
+                  / {charLevelInfo.xpForNext.toLocaleString()} XP
+                </span>
+                <span style={{ fontSize: 9, color: "#3a3a3a", marginLeft: 4 }}>
+                  nível {charLevel + 1}
+                </span>
               </div>
-            ))}
+            </div>
+            <div style={{ height: 6, background: "#1a1a1a", borderRadius: 3, overflow: "hidden" }}>
+              <div style={{
+                height: "100%",
+                width: `${charLevelInfo.progress}%`,
+                background: `linear-gradient(90deg, ${charClass.color}88, ${charClass.color})`,
+                borderRadius: 3,
+                transition: "width 0.7s ease",
+                boxShadow: `0 0 8px ${charClass.color}40`,
+              }} />
+            </div>
+            <div style={{ fontSize: 9, color: "#3a3a3a", marginTop: 4, textAlign: "right" }}>
+              {charLevelInfo.progress}%
+            </div>
           </div>
 
           {/* ── Attributes grid ── */}
           <div style={{
             display: "grid", gridTemplateColumns: "repeat(5, 1fr)",
-            borderBottom: "1px solid #171717",
+            borderBottom: "1px solid #1a1a1a",
           }}>
             {allAttrs.map((attr, i) => {
               const color   = ATTR_COLORS[attr.type];
@@ -473,9 +506,9 @@ export default async function Dashboard() {
               return (
                 <div key={attr.type} style={{
                   padding: "14px 8px 12px",
-                  borderRight: i < 4 ? "1px solid #171717" : "none",
+                  borderRight: i < 4 ? "1px solid #1a1a1a" : "none",
                   textAlign: "center",
-                  background: `linear-gradient(180deg, ${color}04 0%, transparent 100%)`,
+                  background: `linear-gradient(180deg, ${color}05 0%, transparent 100%)`,
                 }}>
                   <div style={{ fontSize: 16, marginBottom: 4 }}>{EMOJI[attr.type]}</div>
                   <div style={{ fontSize: 10, fontWeight: 700, color, letterSpacing: 0.5, marginBottom: 2 }}>
@@ -484,22 +517,42 @@ export default async function Dashboard() {
                   <div style={{ fontSize: 18, fontWeight: 900, color, lineHeight: 1, marginBottom: 2 }}>
                     {attr.level}
                   </div>
-                  <div style={{ fontSize: 8, color: "#3a3a3a", marginBottom: 7, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <div style={{ fontSize: 8, color: "#444", marginBottom: 7, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {cls.name}
                   </div>
-                  {/* Mini XP bar */}
                   <div style={{ height: 3, background: "#1e1e1e", borderRadius: 2, overflow: "hidden" }}>
                     <div style={{
                       height: "100%", width: `${progress}%`,
                       background: `linear-gradient(90deg, ${color}66, ${color})`,
-                      borderRadius: 2,
-                      transition: "width 0.5s ease",
+                      borderRadius: 2, transition: "width 0.5s ease",
                     }} />
                   </div>
-                  <div style={{ fontSize: 8, color: "#252525", marginTop: 3 }}>{progress}%</div>
+                  <div style={{ fontSize: 8, color: "#3a3a3a", marginTop: 3 }}>{progress}%</div>
                 </div>
               );
             })}
+          </div>
+
+          {/* ── Quick stats strip ── */}
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
+            borderBottom: "1px solid #1a1a1a",
+          }}>
+            {[
+              { value: dailies.length + epics.length + bosses.length, label: "Quests ativas", color: "#22d3ee" },
+              { value: streak > 0 ? `${streak}🔥` : "—", label: "Streak", color: streakColor(streak) },
+              { value: `${hpPct}%`, label: "HP", color: hpColor },
+            ].map((s, i) => (
+              <div key={s.label} style={{
+                padding: "12px 10px", textAlign: "center",
+                borderRight: i < 2 ? "1px solid #1a1a1a" : "none",
+              }}>
+                <div style={{ fontSize: 17, fontWeight: 900, color: s.color, lineHeight: 1, marginBottom: 3 }}>
+                  {s.value}
+                </div>
+                <div style={{ fontSize: 9, color: "#444", letterSpacing: 0.5 }}>{s.label}</div>
+              </div>
+            ))}
           </div>
 
           {/* ── Actions ── */}
@@ -509,8 +562,8 @@ export default async function Dashboard() {
               <button type="submit" style={{
                 display: "flex", alignItems: "center", gap: 5,
                 padding: "7px 12px", borderRadius: 7,
-                border: "1px solid #1e1e1e", background: "#0d0d0d",
-                color: "#444", fontSize: 11, cursor: "pointer", fontFamily: "var(--font-mono)",
+                border: "1px solid #222", background: "#0d0d0d",
+                color: "#555", fontSize: 11, cursor: "pointer", fontFamily: "var(--font-mono)",
                 transition: "color 0.15s, border-color 0.15s",
               }}>
                 <RefreshCw size={11} /> Reset Dailies
@@ -523,7 +576,6 @@ export default async function Dashboard() {
 
       {/* ── Progress ──────────────────────────────────── */}
       <Section label="Progresso" icon={<TrendingUp size={12} color="#555" />}>
-        {/* XP semanal */}
         {hasXP ? (
           <XPChart data={weeklyXP} />
         ) : (
@@ -532,17 +584,10 @@ export default async function Dashboard() {
             padding: "32px 20px", textAlign: "center",
           }}>
             <div style={{ fontSize: 22, marginBottom: 8, opacity: 0.2 }}>📊</div>
-            <div style={{ fontSize: 11, color: "#252525" }}>Complete quests para ver o gráfico semanal.</div>
+            <div style={{ fontSize: 11, color: "#383838" }}>Complete quests para ver o gráfico semanal.</div>
           </div>
         )}
-
-        {/* Calendário de atividade */}
-        <div style={{
-          marginTop: 14,
-          background: "#0f0f0f", border: "1px solid #1a1a1a", borderRadius: 12,
-          padding: "20px 20px 16px",
-          overflow: "hidden",
-        }}>
+        <div style={{ marginTop: 14, background: "#0f0f0f", border: "1px solid #1a1a1a", borderRadius: 12, padding: "20px 20px 16px", overflow: "hidden" }}>
           <ActivityCalendar data={activity.data} totalXP={activity.totalXP} />
         </div>
       </Section>
@@ -570,8 +615,8 @@ export default async function Dashboard() {
                   display: "flex", alignItems: "center", gap: 10,
                   padding: "8px 12px",
                   background: "#111",
-                  border: `1px solid ${ok ? "rgba(34,197,94,0.07)" : "rgba(239,68,68,0.07)"}`,
-                  borderLeft: `2px solid ${ok ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.4)"}`,
+                  border: `1px solid ${ok ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)"}`,
+                  borderLeft: `2px solid ${ok ? "rgba(34,197,94,0.45)" : "rgba(239,68,68,0.45)"}`,
                   borderRadius: 7, fontSize: 11,
                 }}>
                   <span style={{ color: ok ? "#22c55e" : "#ef4444", fontWeight: 700, minWidth: 12 }}>{ok ? "✓" : "✗"}</span>
@@ -583,7 +628,9 @@ export default async function Dashboard() {
                       {log.hpChange > 0 ? "+" : ""}{log.hpChange} HP
                     </span>
                   )}
-                  <span style={{ color: "#1e1e1e", fontSize: 9 }}>{new Date(log.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
+                  <span style={{ color: "#3a3a3a", fontSize: 9 }}>
+                    {new Date(log.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                  </span>
                 </div>
               );
             })}
@@ -604,23 +651,31 @@ function Section({
   icon?: React.ReactNode;
 }) {
   return (
-    <div style={{ marginBottom: 28 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        {icon}
-        <span style={{ fontSize: 10, fontWeight: 700, color: "#2e2e2e", letterSpacing: 2, textTransform: "uppercase" }}>
+    <div style={{ marginBottom: 32 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+        {/* Colored left accent bar */}
+        {accent && (
+          <div style={{
+            width: 3, height: 14, borderRadius: 2,
+            background: accent, flexShrink: 0,
+            boxShadow: `0 0 6px ${accent}60`,
+          }} />
+        )}
+        {!accent && icon}
+        <span style={{ fontSize: 10, fontWeight: 700, color: "#555", letterSpacing: 2, textTransform: "uppercase" }}>
           {label}
         </span>
         {count !== undefined && (
           <span style={{
-            fontSize: 9, padding: "1px 7px", borderRadius: 10, fontWeight: 700,
-            background: accent ? `${accent}0d` : "#141414",
-            border: `1px solid ${accent ? accent + "20" : "#1e1e1e"}`,
-            color: accent ?? "#444",
+            fontSize: 9, padding: "2px 7px", borderRadius: 10, fontWeight: 700,
+            background: accent ? `${accent}12` : "#161616",
+            border: `1px solid ${accent ? accent + "28" : "#222"}`,
+            color: accent ?? "#555",
           }}>
             {count}
           </span>
         )}
-        <div style={{ flex: 1, height: 1, background: "#141414" }} />
+        <div style={{ flex: 1, height: 1, background: "#1e1e1e" }} />
       </div>
       {children}
     </div>

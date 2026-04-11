@@ -63,7 +63,7 @@ export default function XPChart({ data }: { data: DayXP[] }) {
       {/* ── Header stats ── */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: 20, marginBottom: 20, flexWrap: "wrap" }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 9, color: "#2a2a2a", letterSpacing: 2, marginBottom: 4 }}>ESTA SEMANA</div>
+          <div style={{ fontSize: 9, color: "#444", letterSpacing: 2, marginBottom: 4 }}>ESTA SEMANA</div>
           {weekTotal > 0 ? (
             <div style={{ fontSize: 26, fontWeight: 900, color: "#f59e0b", lineHeight: 1, letterSpacing: -0.5 }}>
               +{weekTotal.toLocaleString()}
@@ -78,14 +78,14 @@ export default function XPChart({ data }: { data: DayXP[] }) {
         <div style={{ display: "flex", gap: 16 }}>
           {todayXP > 0 && (
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 9, color: "#2a2a2a", letterSpacing: 2, marginBottom: 3 }}>HOJE</div>
+              <div style={{ fontSize: 9, color: "#444", letterSpacing: 2, marginBottom: 3 }}>HOJE</div>
               <div style={{ fontSize: 14, fontWeight: 800, color: "#e5e5e5" }}>+{todayXP}</div>
               <div style={{ fontSize: 9, color: "#555" }}>XP</div>
             </div>
           )}
           {bestDay && bestDay.total > 0 && !bestDay.isToday && (
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 9, color: "#2a2a2a", letterSpacing: 2, marginBottom: 3 }}>MELHOR DIA</div>
+              <div style={{ fontSize: 9, color: "#444", letterSpacing: 2, marginBottom: 3 }}>MELHOR DIA</div>
               <div style={{ fontSize: 14, fontWeight: 800, color: "#e5e5e5" }}>{bestDay.label}</div>
               <div style={{ fontSize: 9, color: "#f59e0b" }}>+{bestDay.total} XP</div>
             </div>
@@ -105,7 +105,7 @@ export default function XPChart({ data }: { data: DayXP[] }) {
                   <text
                     x={props.x} y={Number(props.y) + 13}
                     textAnchor="middle"
-                    fill={d?.isToday ? "#f59e0b" : "#2a2a2a"}
+                    fill={d?.isToday ? "#f59e0b" : "#3a3a3a"}
                     fontSize={10}
                     fontWeight={d?.isToday ? 700 : 400}
                     fontFamily="var(--font-mono)"
@@ -142,7 +142,7 @@ export default function XPChart({ data }: { data: DayXP[] }) {
       {/* ── Attribute legend ── */}
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", paddingTop: 12, borderTop: "1px solid #161616" }}>
         {ATTRS.map(attr => (
-          <div key={attr} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 9, color: "#333" }}>
+          <div key={attr} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 9, color: "#555" }}>
             <div style={{ width: 7, height: 7, borderRadius: 2, background: ATTR_COLORS[attr], opacity: 0.85 }} />
             <span style={{ color: ATTR_COLORS[attr], fontWeight: 700, letterSpacing: 0.5 }}>{attr}</span>
             <span>{ATTR_LABELS[attr]}</span>
